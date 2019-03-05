@@ -1,0 +1,5 @@
+{
+    "AlterID": 64,
+    "API": "127.0.0.1:10081",
+    "InboundTag": "vmess-inbound"
+}

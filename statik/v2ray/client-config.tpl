@@ -37,7 +37,7 @@
       "settings": {
         "vnext": [
           {
-            "address": "webaddress",
+            "address": "{{if .Address}}",
             "port": 10086,
             "users": []
           }

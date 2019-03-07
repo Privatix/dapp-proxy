@@ -15,7 +15,7 @@ type config struct {
 	InboundTag string
 }
 
-func readConfig() *config {
+func readConfigFile() *config {
 	fconfig := flag.String(
 		"config", "config.json", "Configuration file")
 	flag.Parse()
@@ -28,7 +28,7 @@ func readConfig() *config {
 }
 
 func main() {
-	conf := readConfig()
+	conf := readConfigFile()
 	client, err := client.NewClient(conf.API, conf.InboundTag, conf.AlterID)
 	if err != nil {
 		panic(err)

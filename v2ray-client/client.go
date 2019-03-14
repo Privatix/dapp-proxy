@@ -18,8 +18,8 @@ type Client struct {
 	handler    command.HandlerServiceClient
 }
 
-// NewClient creates a client by establishing grpc connection with v2ray api.
-func NewClient(addr, inboundTag string, alterID uint32) (*Client, error) {
+// Dial creates a client by establishing grpc connection with v2ray api.
+func Dial(addr, inboundTag string, alterID uint32) (*Client, error) {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
 		return nil, fmt.Errorf("could not create v2ray api client: %v", err)

@@ -3,16 +3,42 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 
-	client "github.com/privatix/dapp-proxy/v2ray-client"
+	v2rayclient "github.com/privatix/dapp-proxy/v2ray-client"
+	"github.com/privatix/dappctrl/sess"
 	"github.com/privatix/dappctrl/util"
 )
 
 type config struct {
+	V2Ray   v2rayConf
+	Sess    sessConfig
+	Monitor monitorConfig
+}
+
+type v2rayConf struct {
 	AlterID    uint32
 	API        string
 	InboundTag string
+}
+
+type sessConfig struct {
+	Endpoint string
+	Origin   string
+	Product  string
+	Password string
+}
+
+type monitorConfig struct {
+	CountPeriod uint // in seconds.
+}
+
+func must(msg string, err error) {
+	if err != nil {
+		if msg != "" {
+			panic(msg + ": " + err.Error())
+		}
+		panic(err)
+	}
 }
 
 func readConfigFile() *config {
@@ -21,17 +47,60 @@ func readConfigFile() *config {
 	flag.Parse()
 
 	conf := new(config)
-	if err := util.ReadJSONFile(*fconfig, &conf); err != nil {
-		panic(fmt.Sprintf("failed to read configuration: %s\n", err))
-	}
+	err := util.ReadJSONFile(*fconfig, &conf)
+	must("failed to read configuration: ", err)
 	return conf
+}
+
+func dialV2Ray(conf v2rayConf) *v2rayclient.Client {
+	client, err := v2rayclient.Dial(conf.API, conf.InboundTag, conf.AlterID)
+	must("", err)
+	return client
+}
+
+func dialSess(conf sessConfig) *sess.Client {
+	client, err := sess.Dial(context.Background(), conf.Endpoint,
+		conf.Origin, conf.Product, conf.Password)
+	must("", err)
+	return client
+}
+
+func connChangeSubscribe(c *sess.Client) chan *sess.ConnChangeResult {
+	ret := make(chan *sess.ConnChangeResult)
+	subn, err := c.ConnChange(ret)
+	must("", err)
+
+	go func() {
+		select {
+		case err := <-subn.Err():
+			must("unexpected end of subscription to connection changes", err)
+		}
+	}()
+
+	return ret
 }
 
 func main() {
 	conf := readConfigFile()
-	client, err := client.NewClient(conf.API, conf.InboundTag, conf.AlterID)
-	if err != nil {
-		panic(err)
+
+	client := dialV2Ray(conf.V2Ray)
+
+	sesscl := dialSess(conf.Sess)
+
+	changesChan := connChangeSubscribe(sesscl)
+
+	for change := range changesChan {
+		endpoint, err := sesscl.GetEndpoint(change.Channel)
+		must("", err)
+
+		switch change.Status {
+		case sess.ConnStart:
+			err = client.AddUser(context.Background(), *endpoint.Username)
+			must("", err)
+
+		case sess.ConnStop:
+			err = client.RemoveUser(context.Background(), *endpoint.Username)
+			must("", err)
+		}
 	}
-	client.AddUser(context.Background(), "b831381d-6324-4d53-ad4f-8cda48b30811")
 }

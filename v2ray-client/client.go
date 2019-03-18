@@ -6,6 +6,7 @@ import (
 
 	"google.golang.org/grpc"
 	"v2ray.com/core/app/proxyman/command"
+	statscommand "v2ray.com/core/app/stats/command"
 	"v2ray.com/core/common/protocol"
 	"v2ray.com/core/common/serial"
 	"v2ray.com/core/proxy/vmess"
@@ -16,18 +17,20 @@ type Client struct {
 	alterID    uint32
 	inboundTag string
 	handler    command.HandlerServiceClient
+	stats      statscommand.StatsServiceClient
 }
 
 // Dial creates a client by establishing grpc connection with v2ray api.
 func Dial(addr, inboundTag string, alterID uint32) (*Client, error) {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		return nil, fmt.Errorf("could not create v2ray api client: %v", err)
+		return nil, fmt.Errorf("could not dial v2ray api: %v", err)
 	}
 	client := &Client{
 		alterID:    alterID,
 		inboundTag: inboundTag,
 		handler:    command.NewHandlerServiceClient(conn),
+		stats:      statscommand.NewStatsServiceClient(conn),
 	}
 	return client, nil
 }
@@ -64,4 +67,21 @@ func (c *Client) RemoveUser(ctx context.Context, id string) error {
 		return fmt.Errorf("could not remove user: %v", err)
 	}
 	return err
+}
+
+// GetUsage returns traffic usage for user.
+func (c *Client) GetUsage(ctx context.Context, username string) (uint, error) {
+	names := []string{
+		fmt.Sprintf("user>>>%s>>>traffic>>>downlink", username),
+		fmt.Sprintf("user>>>%s>>>traffic>>>uplink", username),
+	}
+	var usage uint
+	for _, name := range names {
+		res, err := c.stats.GetStats(ctx, &statscommand.GetStatsRequest{Name: name})
+		if err != nil {
+			return 0, fmt.Errorf("could not get user's traffic usage: %v", err)
+		}
+		usage += uint(res.Stat.GetValue())
+	}
+	return usage, nil
 }

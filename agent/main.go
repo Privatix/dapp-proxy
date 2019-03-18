@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"flag"
+	"time"
 
+	"github.com/privatix/dapp-proxy/monitor"
 	v2rayclient "github.com/privatix/dapp-proxy/v2ray-client"
 	"github.com/privatix/dappctrl/sess"
 	"github.com/privatix/dappctrl/util"
@@ -80,6 +82,12 @@ func connChangeSubscribe(c *sess.Client) chan *sess.ConnChangeResult {
 	return ret
 }
 
+func newMonitor(client *v2rayclient.Client, conf monitorConfig) *monitor.Monitor {
+	return monitor.NewMonitor(
+		monitor.NewV2RayClientUsageGetter(client),
+		time.Duration(conf.CountPeriod)*time.Second)
+}
+
 func main() {
 	conf := readConfigFile()
 
@@ -89,18 +97,33 @@ func main() {
 
 	changesChan := connChangeSubscribe(sesscl)
 
+	mon := newMonitor(client, conf.Monitor)
+
+	go mon.Start()
+
 	for change := range changesChan {
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
 		must("", err)
+
+		if endpoint.Username == nil {
+			// TODO: log error or fatal.
+		}
 
 		switch change.Status {
 		case sess.ConnStart:
 			err = client.AddUser(context.Background(), *endpoint.Username)
 			must("", err)
-
+			mon.Commands <- &monitor.Command{
+				Username: *endpoint.Username,
+				Action:   monitor.StartMonitoring,
+			}
 		case sess.ConnStop:
 			err = client.RemoveUser(context.Background(), *endpoint.Username)
 			must("", err)
+			mon.Commands <- &monitor.Command{
+				Username: *endpoint.Username,
+				Action:   monitor.StopMonitoring,
+			}
 		}
 	}
 }

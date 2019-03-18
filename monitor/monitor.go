@@ -54,10 +54,7 @@ func NewMonitor(usage UsageGetter, period time.Duration) *Monitor {
 func (m *Monitor) Start() {
 
 	go func() {
-		ticker := time.NewTicker(m.reportsPeriod)
-		defer ticker.Stop()
-
-		for range ticker.C {
+		for range time.Tick(m.reportsPeriod) {
 			m.reportUsages()
 		}
 	}()

@@ -17,6 +17,6 @@ func NewV2RayClientUsageGetter(client *v2rayclient.Client) *V2RayClientUsageGett
 }
 
 // Get returns traffic usage for username.
-func (getter *V2RayClientUsageGetter) Get(username string) (uint, error) {
+func (getter *V2RayClientUsageGetter) Get(username string) (uint64, error) {
 	return getter.client.GetUsage(context.Background(), username)
 }

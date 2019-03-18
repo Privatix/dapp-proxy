@@ -99,7 +99,14 @@ func main() {
 
 	mon := newMonitor(client, conf.Monitor)
 
-	go mon.Start()
+	go func() {
+		for report := range mon.Reports {
+			err := sesscl.UpdateSession(report.Username, report.Usage, report.Last)
+			if err != nil {
+				// TODO: log error or fatal.
+			}
+		}
+	}()
 
 	for change := range changesChan {
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
@@ -109,21 +116,19 @@ func main() {
 			// TODO: log error or fatal.
 		}
 
+		username := *endpoint.Username
+
 		switch change.Status {
 		case sess.ConnStart:
-			err = client.AddUser(context.Background(), *endpoint.Username)
+			err = client.AddUser(context.Background(), username)
 			must("", err)
-			mon.Commands <- &monitor.Command{
-				Username: *endpoint.Username,
-				Action:   monitor.StartMonitoring,
-			}
+			_, err = sesscl.StartSession("", username, 0)
+			must("", err)
+			mon.Start(username)
 		case sess.ConnStop:
-			err = client.RemoveUser(context.Background(), *endpoint.Username)
+			err = client.RemoveUser(context.Background(), username)
 			must("", err)
-			mon.Commands <- &monitor.Command{
-				Username: *endpoint.Username,
-				Action:   monitor.StopMonitoring,
-			}
+			mon.Stop(username)
 		}
 	}
 }

@@ -4,89 +4,107 @@ import (
 	"time"
 )
 
-type action bool
+type action int
 
 // Actions
 const (
-	StartMonitoring action = true
-	StopMonitoring  action = false
+	startMonitoring action = iota
+	stopMonitoring
+	monitoring
 )
 
 // UsageGetter abstracts how traffic usage is computed/extracted.
 type UsageGetter interface {
-	Get(username string) (uint, error)
+	Get(username string) (uint64, error)
 }
 
-// Command is request to start or stop monitoring for username.
-type Command struct {
-	Username string
-	Action   action
+// command is request to start or stop monitoring for username.
+type command struct {
+	username string
+	action   action
 }
 
 // Report is usage report format.
 type Report struct {
 	Username string
-	Usage    uint
+	Usage    uint64
+	First    bool
+	Last     bool
 }
 
 // Monitor counts and reports traffic usage.
 type Monitor struct {
-	Commands chan *Command
-	Reports  chan *Report
+	Reports chan *Report
 
+	commands      map[string]chan *command
 	reportsPeriod time.Duration
-	usernames     map[string]bool
 	usage         UsageGetter
 }
 
 // NewMonitor creates a monitor.
 func NewMonitor(usage UsageGetter, period time.Duration) *Monitor {
 	return &Monitor{
-		Commands:      make(chan *Command),
 		Reports:       make(chan *Report),
+		commands:      make(map[string]chan *command),
 		reportsPeriod: period,
-		usernames:     make(map[string]bool),
 		usage:         usage,
 	}
 }
 
-// Start start monitor routine.
-func (m *Monitor) Start() {
-
+// Start start monitor traffic usage for username.
+func (m *Monitor) Start(username string) {
+	ch := make(chan *command)
+	m.commands[username] = ch
 	go func() {
-		for range time.Tick(m.reportsPeriod) {
-			m.reportUsages()
+		for cmd := range ch {
+			m.reportUsage(cmd)
+
+			go func(username string, act action) {
+				ch := m.commands[username]
+				if act == stopMonitoring {
+					delete(m.commands, username)
+					close(ch)
+					return
+				}
+				ch <- &command{
+					username: username,
+					action:   monitoring,
+				}
+			}(cmd.username, cmd.action)
 		}
 	}()
-
-	for cmd := range m.Commands {
-		switch cmd.Action {
-		case StartMonitoring:
-			if _, ok := m.usernames[cmd.Username]; ok {
-				// TODO: log warning.
-				continue
-			}
-			m.usernames[cmd.Username] = true
-		case StopMonitoring:
-			delete(m.usernames, cmd.Username)
-		}
+	ch <- &command{
+		username: username,
+		action:   startMonitoring,
 	}
 }
 
-func (m *Monitor) reportUsages() {
-	for username := range m.usernames {
-		usage, err := m.usage.Get(username)
-		if err != nil {
-			// TODO: log error or fatal.
-			return
+// Stop stop monitoring traffic usage for username.
+func (m *Monitor) Stop(username string) {
+	ch, ok := m.commands[username]
+	if !ok {
+		// TODO: log warning
+		return
+	}
+	go func() {
+		ch <- &command{
+			username: username,
+			action:   stopMonitoring,
 		}
+	}()
+}
 
-		report := &Report{
-			Username: username,
-			Usage:    usage,
-		}
-		go func() {
-			m.Reports <- report
-		}()
+func (m *Monitor) reportUsage(cmd *command) {
+	usage, err := m.usage.Get(cmd.username)
+	if err != nil {
+		// TODO: log error or fatal.
+		return
+	}
+
+	m.Reports <- &Report{
+		Username: cmd.username,
+		Usage:    usage,
+		First:    cmd.action == startMonitoring,
+		Last:     cmd.action == stopMonitoring,
 	}
 }

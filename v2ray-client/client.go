@@ -70,18 +70,18 @@ func (c *Client) RemoveUser(ctx context.Context, id string) error {
 }
 
 // GetUsage returns traffic usage for user.
-func (c *Client) GetUsage(ctx context.Context, username string) (uint, error) {
+func (c *Client) GetUsage(ctx context.Context, username string) (uint64, error) {
 	names := []string{
 		fmt.Sprintf("user>>>%s>>>traffic>>>downlink", username),
 		fmt.Sprintf("user>>>%s>>>traffic>>>uplink", username),
 	}
-	var usage uint
+	var usage uint64
 	for _, name := range names {
 		res, err := c.stats.GetStats(ctx, &statscommand.GetStatsRequest{Name: name})
 		if err != nil {
 			return 0, fmt.Errorf("could not get user's traffic usage: %v", err)
 		}
-		usage += uint(res.Stat.GetValue())
+		usage += uint64(res.Stat.GetValue())
 	}
 	return usage, nil
 }

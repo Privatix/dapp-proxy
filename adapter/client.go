@@ -6,9 +6,10 @@ import (
 
 // AsClient runs adapter in clients mode.
 func AsClient() {
-	conf := readConfigFile()
+	conf := new(clientConfig)
+	readConfigFile(conf)
 
-	client := dialV2Ray(conf.V2Ray)
+	client := newV2RayClient(conf.V2Ray.API, conf.V2Ray.InboundTag, conf.V2Ray.AlterID)
 
 	sesscl := dialSess(conf.Sess)
 

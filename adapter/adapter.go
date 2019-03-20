@@ -5,6 +5,8 @@ import (
 	"flag"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/privatix/dapp-proxy/monitor"
 	v2rayclient "github.com/privatix/dapp-proxy/v2ray-client"
 	"github.com/privatix/dappctrl/sess"
@@ -20,20 +22,19 @@ func must(msg string, err error) {
 	}
 }
 
-func readConfigFile() *config {
+func readConfigFile(conf interface{}) {
 	fconfig := flag.String(
 		"config", "config.json", "Configuration file")
 	flag.Parse()
 
-	conf := new(config)
 	err := util.ReadJSONFile(*fconfig, &conf)
 	must("failed to read configuration: ", err)
-	return conf
 }
 
-func dialV2Ray(conf v2rayConfig) *v2rayclient.Client {
-	client, err := v2rayclient.Dial(conf.API, conf.InboundTag, conf.AlterID)
-	must("", err)
+func newV2RayClient(addr, inboundTag string, alterID uint32) *v2rayclient.Client {
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	must("could not dial v2ray api", err)
+	client := v2rayclient.NewClient(conn, inboundTag, alterID)
 	return client
 }
 

@@ -1,15 +1,27 @@
 package adapter
 
-type config struct {
-	V2Ray   v2rayConfig
+type agentConfig struct {
+	V2Ray   v2rayAgentConfig
 	Sess    sessConfig
 	Monitor monitorConfig
 }
 
-type v2rayConfig struct {
+type v2rayAgentConfig struct {
 	AlterID    uint32
 	API        string
 	InboundTag string
+}
+
+type clientConfig struct {
+	V2Ray   v2rayAgentConfig
+	Sess    sessConfig
+	Monitor monitorConfig
+}
+
+type v2rayClientConfig struct {
+	API        string
+	InboundTag string
+	ExecPath   string
 }
 
 type sessConfig struct {

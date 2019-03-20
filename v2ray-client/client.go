@@ -20,19 +20,15 @@ type Client struct {
 	stats      statscommand.StatsServiceClient
 }
 
-// Dial creates a client by establishing grpc connection with v2ray api.
-func Dial(addr, inboundTag string, alterID uint32) (*Client, error) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("could not dial v2ray api: %v", err)
-	}
+// NewClient creates a client by establishing grpc connection with v2ray api.
+func NewClient(conn *grpc.ClientConn, inboundTag string, alterID uint32) *Client {
 	client := &Client{
 		alterID:    alterID,
 		inboundTag: inboundTag,
 		handler:    command.NewHandlerServiceClient(conn),
 		stats:      statscommand.NewStatsServiceClient(conn),
 	}
-	return client, nil
+	return client
 }
 
 // AddUser adds a user with id to inbound.

@@ -8,9 +8,10 @@ import (
 
 // AsAgent runs adapter in agent mode.
 func AsAgent() {
-	conf := readConfigFile()
+	conf := &agentConfig{}
+	readConfigFile(conf)
 
-	client := dialV2Ray(conf.V2Ray)
+	client := newV2RayClient(conf.V2Ray.API, conf.V2Ray.InboundTag, conf.V2Ray.AlterID)
 
 	sesscl := dialSess(conf.Sess)
 

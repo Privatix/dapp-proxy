@@ -38,7 +38,7 @@ func newV2RayClient(addr, inboundTag string, alterID uint32) *v2rayclient.Client
 	return client
 }
 
-func dialSess(conf sessConfig) *sess.Client {
+func newProductSessClient(conf sessConfig) *sess.Client {
 	client, err := sess.Dial(context.Background(), conf.Endpoint,
 		conf.Origin, conf.Product, conf.Password)
 	must("", err)

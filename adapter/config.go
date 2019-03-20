@@ -1,5 +1,12 @@
 package adapter
 
+// Keys in product configuration.
+const (
+	productAlterID = "alterId"
+	productAddress = "address"
+	productPort    = "port"
+)
+
 type agentConfig struct {
 	V2Ray   v2rayAgentConfig
 	Sess    sessConfig
@@ -7,9 +14,10 @@ type agentConfig struct {
 }
 
 type v2rayAgentConfig struct {
-	AlterID    uint32
-	API        string
-	InboundTag string
+	AlterID     uint32
+	API         string
+	InboundTag  string
+	InboundPort uint
 }
 
 type clientConfig struct {

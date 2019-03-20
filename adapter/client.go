@@ -9,9 +9,9 @@ func AsClient() {
 	conf := new(clientConfig)
 	readConfigFile(conf)
 
-	client := newV2RayClient(conf.V2Ray.API, conf.V2Ray.InboundTag, conf.V2Ray.AlterID)
+	sesscl := newProductSessClient(conf.Sess)
 
-	sesscl := dialSess(conf.Sess)
+	// client := newV2RayClient(conf.V2Ray.API, conf.V2Ray.InboundTag, conf.V2Ray.AlterID)
 
 	changesChan := connChangeSubscribe(sesscl)
 

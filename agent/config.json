@@ -2,7 +2,8 @@
     "V2Ray": {
         "AlterID": 64,
         "API": "127.0.0.1:10081",
-        "InboundTag": "vmess-inbound"
+        "InboundTag": "vmess-inbound",
+        "InboundPort": 10086
     },
     "Sess": {
         "Endpoint": "ws://localhost:8000/ws",

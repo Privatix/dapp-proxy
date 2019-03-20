@@ -21,7 +21,7 @@ type v2rayAgentConfig struct {
 }
 
 type clientConfig struct {
-	V2Ray   v2rayAgentConfig
+	V2Ray   v2rayClientConfig
 	Sess    sessConfig
 	Monitor monitorConfig
 }

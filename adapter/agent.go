@@ -35,11 +35,14 @@ func AsAgent() {
 
 	pushConfiguration(conf.V2Ray, sesscl)
 
-	client := newV2RayClient(conf.V2Ray.API, conf.V2Ray.InboundTag, conf.V2Ray.AlterID)
+	statsclient := newV2RayStatsClient(conf.V2Ray.API, conf.V2Ray.InboundTag)
+
+	usersclient := newV2RayUsersClient(conf.V2Ray.API, conf.V2Ray.InboundTag,
+		conf.V2Ray.AlterID)
 
 	changesChan := connChangeSubscribe(sesscl)
 
-	mon := newMonitor(client, conf.Monitor)
+	mon := newMonitor(statsclient, conf.Monitor)
 
 	go handleReports(mon, sesscl)
 
@@ -55,11 +58,11 @@ func AsAgent() {
 
 		switch change.Status {
 		case sess.ConnStart:
-			err = client.AddUser(context.Background(), username)
+			err = usersclient.AddUser(context.Background(), username)
 			must("", err)
 			mon.Start(username)
 		case sess.ConnStop:
-			err = client.RemoveUser(context.Background(), username)
+			err = usersclient.RemoveUser(context.Background(), username)
 			must("", err)
 			mon.Stop(username)
 		}

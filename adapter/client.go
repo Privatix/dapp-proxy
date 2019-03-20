@@ -11,9 +11,9 @@ func AsClient() {
 
 	sesscl := newProductSessClient(conf.Sess)
 
-	// client := newV2RayClient(conf.V2Ray.API, conf.V2Ray.InboundTag, conf.V2Ray.AlterID)
-
 	changesChan := connChangeSubscribe(sesscl)
+
+	client := newV2RayStatsClient(conf.V2Ray.API, conf.V2Ray.InboundTag)
 
 	mon := newMonitor(client, conf.Monitor)
 

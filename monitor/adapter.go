@@ -8,11 +8,11 @@ import (
 
 // V2RayClientUsageGetter gets traffic usage using v2ray api.
 type V2RayClientUsageGetter struct {
-	client *v2rayclient.Client
+	client *v2rayclient.StatsClient
 }
 
 // NewV2RayClientUsageGetter creates an instance.
-func NewV2RayClientUsageGetter(client *v2rayclient.Client) *V2RayClientUsageGetter {
+func NewV2RayClientUsageGetter(client *v2rayclient.StatsClient) *V2RayClientUsageGetter {
 	return &V2RayClientUsageGetter{client}
 }
 

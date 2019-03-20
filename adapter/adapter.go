@@ -31,10 +31,17 @@ func readConfigFile(conf interface{}) {
 	must("failed to read configuration: ", err)
 }
 
-func newV2RayClient(addr, inboundTag string, alterID uint32) *v2rayclient.Client {
+func newV2RayUsersClient(addr, inboundTag string, alterID uint32) *v2rayclient.UsersClient {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	must("could not dial v2ray api", err)
-	client := v2rayclient.NewClient(conn, inboundTag, alterID)
+	client := v2rayclient.NewUsersClient(conn, inboundTag, alterID)
+	return client
+}
+
+func newV2RayStatsClient(addr, inboundTag string) *v2rayclient.StatsClient {
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	must("could not dial v2ray api", err)
+	client := v2rayclient.NewStatsClient(conn, inboundTag)
 	return client
 }
 
@@ -60,7 +67,7 @@ func connChangeSubscribe(c *sess.Client) chan *sess.ConnChangeResult {
 	return ret
 }
 
-func newMonitor(client *v2rayclient.Client, conf monitorConfig) *monitor.Monitor {
+func newMonitor(client *v2rayclient.StatsClient, conf monitorConfig) *monitor.Monitor {
 	return monitor.NewMonitor(
 		monitor.NewV2RayClientUsageGetter(client),
 		time.Duration(conf.CountPeriod)*time.Second)

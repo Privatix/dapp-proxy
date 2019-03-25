@@ -17,6 +17,8 @@ import (
 	"v2ray.com/core/proxy/vmess/outbound"
 )
 
+const outboundVmessTag = "vmess-outbound"
+
 // Configurer configures outbounds on client.
 type Configurer struct {
 	handler command.HandlerServiceClient
@@ -29,22 +31,23 @@ func NewConfigurer(conn *grpc.ClientConn) *Configurer {
 	}
 }
 
-// ConfigureVmessRequest params to configure vmess outbound.
-type ConfigureVmessRequest struct {
+// AddVmessRequest params to configure vmess outbound.
+type AddVmessRequest struct {
 	Address string
 	AlterID uint32
 	ID      string
 	Port    uint32
 }
 
-// ConfigureVmess configures vmess outbound.
-func (c *Configurer) ConfigureVmess(ctx context.Context, req *ConfigureVmessRequest) error {
+// AddVmess configures vmess outbound.
+func (c *Configurer) AddVmess(ctx context.Context, req *AddVmessRequest) error {
 	addr, err := parseAddr(req.Address)
 	if err != nil {
 		return fmt.Errorf("could not parse ip address %s: %v", req.Address, err)
 	}
 	_, err = c.handler.AddOutbound(ctx, &command.AddOutboundRequest{
 		Outbound: &core.OutboundHandlerConfig{
+			Tag: outboundVmessTag,
 			ProxySettings: serial.ToTypedMessage(&outbound.Config{
 				Receiver: []*protocol.ServerEndpoint{
 					{
@@ -62,6 +65,14 @@ func (c *Configurer) ConfigureVmess(ctx context.Context, req *ConfigureVmessRequ
 				},
 			}),
 		},
+	})
+	return err
+}
+
+// RemoveVmess removes vmess outbound.
+func (c *Configurer) RemoveVmess(ctx context.Context) error {
+	_, err := c.handler.RemoveOutbound(ctx, &command.RemoveOutboundRequest{
+		Tag: outboundVmessTag,
 	})
 	return err
 }

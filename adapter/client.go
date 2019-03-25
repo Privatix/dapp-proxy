@@ -10,7 +10,7 @@ import (
 	"github.com/privatix/dappctrl/sess"
 )
 
-func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.ConfigureVmessRequest, error) {
+func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.AddVmessRequest, error) {
 	prodconf := make(map[string]string)
 
 	err := json.Unmarshal(prodConfRaw, &prodconf)
@@ -43,7 +43,7 @@ func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2raycl
 		return nil, err
 	}
 
-	return &v2rayclient.ConfigureVmessRequest{
+	return &v2rayclient.AddVmessRequest{
 		Address: addr,
 		AlterID: uint32(alterID),
 		ID:      username,
@@ -88,14 +88,16 @@ func AsClient() {
 				// TODO: log warning or fatal.
 				continue
 			}
-			configurer.ConfigureVmess(context.Background(), req)
+			configurer.AddVmess(context.Background(), req)
 			// 2. Start monitoring.
 			mon.Start(username)
-			// 3. Start reading v2ray logs to detect connection drops.
-			// How to recognize logs particularly for this connection?
+			// TODO: 3. Start reading v2ray logs to detect and handle connection drops.
+			// ? How to recognize logs particularly for this connection ?
 		case sess.ConnStop:
 			// 1. Stop or restore v2ray configuration.
-			// 2. Stop reading v2ray logs for this connection.
+			configurer.RemoveVmess(context.Background())
+			// TODO: 2. Stop reading v2ray logs for this connection.
+			// 3. Stop monitoring.
 			mon.Stop(username)
 		}
 	}

@@ -22,13 +22,14 @@ func must(msg string, err error) {
 	}
 }
 
-func readConfigFile(conf interface{}) {
+func readConfigFile(conf interface{}) string {
 	fconfig := flag.String(
 		"config", "config.json", "Configuration file")
 	flag.Parse()
 
 	err := util.ReadJSONFile(*fconfig, &conf)
 	must("failed to read configuration: ", err)
+	return *fconfig
 }
 
 func newV2RayUsersClient(addr, inboundTag string, alterID uint32) *v2rayclient.UsersClient {

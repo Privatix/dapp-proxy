@@ -3,6 +3,9 @@ package adapter
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	ipify "github.com/rdegges/go-ipify"
 
@@ -26,14 +29,36 @@ func pushConfiguration(conf v2rayAgentConfig, sesscl *sess.Client) {
 	must("could not push product configiration", err)
 }
 
+// Config push file related constants.
+const (
+	pushedFile = "configPushed"
+	filePerm   = 0644
+)
+
+func configNotPushed(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, pushedFile))
+	return err != nil
+}
+
+func markConfigAsPushed(dir string) {
+	file := filepath.Join(dir, pushedFile)
+	err := ioutil.WriteFile(file, nil, filePerm)
+	must("could not mark product config as pushed", err)
+}
+
 // AsAgent runs adapter in agent mode.
 func AsAgent() {
 	conf := &agentConfig{}
-	readConfigFile(conf)
+
+	confFile := readConfigFile(conf)
 
 	sesscl := newProductSessClient(conf.Sess)
 
-	pushConfiguration(conf.V2Ray, sesscl)
+	dir := filepath.Dir(confFile)
+	if configNotPushed(dir) {
+		pushConfiguration(conf.V2Ray, sesscl)
+		markConfigAsPushed(dir)
+	}
 
 	statsclient := newV2RayStatsClient(conf.V2Ray.API, conf.V2Ray.InboundTag)
 

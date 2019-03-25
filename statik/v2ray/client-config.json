@@ -2,23 +2,12 @@
   "log": {
     "loglevel": "warning"
   },
-  "inbounds": [
-    {
+  "inbounds": [{
       "port": 1080,
       "listen": "127.0.0.1",
-      "tag": "socks-inbound",
       "protocol": "socks",
       "settings": {
-        "auth": "noauth",
-        "udp": false,
-        "ip": "127.0.0.1"
-      },
-      "sniffing": {
-        "enable": true,
-        "destOverride": [
-          "http",
-          "tls"
-        ]
+        "udp": true
       }
     },
     {
@@ -31,23 +20,7 @@
       "tag": "api"
     }
   ],
-  "outbounds": [
-    {
-      "protocol": "vmess",
-      "settings": {
-        "vnext": [
-          {
-            "address": "{{.Address}}",
-            "port": {{.Port}},
-            "users": [
-              "id": "{{.User.ID}},
-              "alterId": {{.User.AlterID}}
-            ]
-          }
-        ]
-      }
-    }
-  ],
+  "outbounds": [],
   "routing": {
     "domainStrategy": "IPOnDemand",
     "strategy": "rules",

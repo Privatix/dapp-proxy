@@ -32,16 +32,18 @@ func readConfigFile(conf interface{}) string {
 	return *fconfig
 }
 
-func newV2RayUsersClient(addr, inboundTag string, alterID uint32) *v2rayclient.UsersClient {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
-	must("could not dial v2ray api", err)
+func newV2RayUsersClient(conn *grpc.ClientConn, inboundTag string, alterID uint32) *v2rayclient.UsersClient {
 	client := v2rayclient.NewUsersClient(conn, inboundTag, alterID)
 	return client
 }
 
-func newV2RayStatsClient(addr, inboundTag string) *v2rayclient.StatsClient {
+func newV2RayAPIConn(addr string) *grpc.ClientConn {
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	must("could not dial v2ray api", err)
+	return conn
+}
+
+func newV2RayStatsClient(conn *grpc.ClientConn, inboundTag string) *v2rayclient.StatsClient {
 	client := v2rayclient.NewStatsClient(conn, inboundTag)
 	return client
 }

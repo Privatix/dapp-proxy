@@ -1,4 +1,4 @@
-package client
+package v2rayclient
 
 import (
 	"context"

@@ -60,9 +60,11 @@ func AsAgent() {
 		markConfigAsPushed(dir)
 	}
 
-	statsclient := newV2RayStatsClient(conf.V2Ray.API, conf.V2Ray.InboundTag)
+	conn := newV2RayAPIConn(conf.V2Ray.API)
 
-	usersclient := newV2RayUsersClient(conf.V2Ray.API, conf.V2Ray.InboundTag,
+	statsclient := newV2RayStatsClient(conn, conf.V2Ray.InboundTag)
+
+	usersclient := newV2RayUsersClient(conn, conf.V2Ray.InboundTag,
 		conf.V2Ray.AlterID)
 
 	changesChan := connChangeSubscribe(sesscl)

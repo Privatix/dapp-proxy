@@ -1,0 +1,3 @@
+[[constraint]]
+  name = "github.com/privatix/dappctrl"
+  branch = "%BRANCH_NAME%"

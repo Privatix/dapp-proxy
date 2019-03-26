@@ -10,7 +10,7 @@ import (
 	"github.com/privatix/dappctrl/sess"
 )
 
-func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.AddVmessRequest, error) {
+func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.VmessOutbound, error) {
 	prodconf := make(map[string]string)
 
 	err := json.Unmarshal(prodConfRaw, &prodconf)
@@ -43,7 +43,7 @@ func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2raycl
 		return nil, err
 	}
 
-	return &v2rayclient.AddVmessRequest{
+	return &v2rayclient.VmessOutbound{
 		Address: addr,
 		AlterID: uint32(alterID),
 		ID:      username,
@@ -88,7 +88,7 @@ func AsClient() {
 				// TODO: log warning or fatal.
 				continue
 			}
-			configurer.AddVmess(context.Background(), req)
+			configurer.ConfigureVmess(context.Background(), req)
 			// 2. Start monitoring.
 			mon.Start(username)
 			// TODO: 3. Start reading v2ray logs to detect and handle connection drops.

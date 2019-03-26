@@ -7,8 +7,8 @@
     "Sess": {
         "Endpoint": "ws://localhost:8000/ws",
         "Origin": "",
-        "Product": "5b7ffc5c-0401-4166-a305-e011eacc9432",
-        "Password": "secret"
+        "Product": "33f14778-1413-4dc9-abe8-de0c62e3af12",
+        "Password": "Secret"
     },
     "Monitor": {
         "CountPeriod": 5

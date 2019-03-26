@@ -2,3 +2,5 @@ statik/statik.go
 \.idea/
 
 *.iml
+
+Gopkg\.toml

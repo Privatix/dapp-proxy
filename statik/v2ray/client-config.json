@@ -5,9 +5,19 @@
   "inbounds": [{
       "port": 1080,
       "listen": "127.0.0.1",
+      "tag": "socks-inbound",
       "protocol": "socks",
       "settings": {
-        "udp": true
+        "auth": "noauth",
+        "udp": true,
+        "ip": "127.0.0.1"
+      },
+      "sniffing": {
+        "enable": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
       }
     },
     {
@@ -20,7 +30,13 @@
       "tag": "api"
     }
   ],
-  "outbounds": [],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {},
+      "tag": "outbound-default"
+    }
+  ],
   "routing": {
     "domainStrategy": "IPOnDemand",
     "strategy": "rules",

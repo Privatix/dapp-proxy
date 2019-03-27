@@ -74,6 +74,8 @@ func AsAgent() {
 	go handleReports(mon, sesscl)
 
 	for change := range changesChan {
+		fmt.Printf("Connection change: %+v\n", *change)
+
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
 		must("", err)
 
@@ -82,6 +84,8 @@ func AsAgent() {
 		}
 
 		username := *endpoint.Username
+
+		fmt.Printf("endpoint: %+v\n", *endpoint)
 
 		switch change.Status {
 		case sess.ConnStart:

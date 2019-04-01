@@ -91,11 +91,11 @@ func AsAgent() {
 		case sess.ConnStart:
 			err = usersclient.AddUser(context.Background(), username)
 			must("", err)
-			mon.Start(username)
+			mon.Start(username, change.Channel)
 		case sess.ConnStop:
 			err = usersclient.RemoveUser(context.Background(), username)
 			must("", err)
-			mon.Stop(username)
+			mon.Stop(username, change.Channel)
 		}
 	}
 }

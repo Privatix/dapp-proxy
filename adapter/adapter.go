@@ -79,12 +79,12 @@ func newMonitor(client *v2rayclient.StatsClient, conf monitorConfig) *monitor.Mo
 func handleReports(mon *monitor.Monitor, sesscl *sess.Client) {
 	for report := range mon.Reports {
 		if report.First {
-			_, err := sesscl.StartSession("", report.Username, 0)
+			_, err := sesscl.StartSession("", report.Channel, 0)
 			if err != nil {
 				// TODO: log error or fatal.
 			}
 		}
-		err := sesscl.UpdateSession(report.Username, report.Usage, report.Last)
+		err := sesscl.UpdateSession(report.Channel, report.Usage, report.Last)
 		if err != nil {
 			// TODO: log error or fatal.
 		}

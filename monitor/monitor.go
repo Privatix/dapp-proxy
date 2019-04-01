@@ -20,16 +20,17 @@ type UsageGetter interface {
 
 // command is request to start or stop monitoring for username.
 type command struct {
+	channel  string
 	username string
 	action   action
 }
 
 // Report is usage report format.
 type Report struct {
-	Username string
-	Usage    uint64
-	First    bool
-	Last     bool
+	Channel string
+	Usage   uint64
+	First   bool
+	Last    bool
 }
 
 // Monitor counts and reports traffic usage.
@@ -52,7 +53,7 @@ func NewMonitor(usage UsageGetter, period time.Duration) *Monitor {
 }
 
 // Start start monitor traffic usage for username.
-func (m *Monitor) Start(username string) {
+func (m *Monitor) Start(username, channel string) {
 	ch := make(chan *command)
 	m.commands[username] = ch
 	go func() {
@@ -66,7 +67,9 @@ func (m *Monitor) Start(username string) {
 					close(ch)
 					return
 				}
+				time.Sleep(m.reportsPeriod)
 				ch <- &command{
+					channel:  channel,
 					username: username,
 					action:   monitoring,
 				}
@@ -74,13 +77,14 @@ func (m *Monitor) Start(username string) {
 		}
 	}()
 	ch <- &command{
+		channel:  channel,
 		username: username,
 		action:   startMonitoring,
 	}
 }
 
 // Stop stop monitoring traffic usage for username.
-func (m *Monitor) Stop(username string) {
+func (m *Monitor) Stop(username, channel string) {
 	ch, ok := m.commands[username]
 	if !ok {
 		// TODO: log warning
@@ -88,6 +92,7 @@ func (m *Monitor) Stop(username string) {
 	}
 	go func() {
 		ch <- &command{
+			channel:  channel,
 			username: username,
 			action:   stopMonitoring,
 		}
@@ -98,13 +103,12 @@ func (m *Monitor) reportUsage(cmd *command) {
 	usage, err := m.usage.Get(cmd.username)
 	if err != nil {
 		// TODO: log error or fatal.
-		return
 	}
 
 	m.Reports <- &Report{
-		Username: cmd.username,
-		Usage:    usage,
-		First:    cmd.action == startMonitoring,
-		Last:     cmd.action == stopMonitoring,
+		Channel: cmd.channel,
+		Usage:   usage,
+		First:   cmd.action == startMonitoring,
+		Last:    cmd.action == stopMonitoring,
 	}
 }

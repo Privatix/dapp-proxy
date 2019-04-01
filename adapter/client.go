@@ -28,7 +28,7 @@ func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2raycl
 		return nil, fmt.Errorf("could not find %s", productPort)
 	}
 
-	port, err := strconv.ParseUint(portRaw, 10, 8)
+	port, err := strconv.ParseUint(portRaw, 10, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2raycl
 		return nil, fmt.Errorf("could not find %s", productAlterID)
 	}
 
-	alterID, err := strconv.ParseUint(alterIDRaw, 10, 8)
+	alterID, err := strconv.ParseUint(alterIDRaw, 10, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,6 @@ func AsClient() {
 	go handleReports(mon, sesscl)
 
 	for change := range changesChan {
-		fmt.Printf("Connection change: %+v\n", *change)
-
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
 		must("", err)
 
@@ -81,8 +79,6 @@ func AsClient() {
 		}
 
 		username := *endpoint.Username
-
-		fmt.Printf("endpoint: %+v\n", *endpoint)
 
 		switch change.Status {
 		case sess.ConnStart:
@@ -94,7 +90,7 @@ func AsClient() {
 			}
 			configurer.ConfigureVmess(context.Background(), req)
 			// 2. Start monitoring.
-			mon.Start(username)
+			mon.Start(username, change.Channel)
 			// TODO: 3. Start reading v2ray logs to detect and handle connection drops.
 			// ? How to recognize logs particularly for this connection ?
 		case sess.ConnStop:
@@ -102,7 +98,7 @@ func AsClient() {
 			configurer.RemoveVmess(context.Background())
 			// TODO: 2. Stop reading v2ray logs for this connection.
 			// 3. Stop monitoring.
-			mon.Stop(username)
+			mon.Stop(username, change.Channel)
 		}
 	}
 }

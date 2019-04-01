@@ -27,13 +27,13 @@ func TestMonitor(t *testing.T) {
 
 	usage.reports["foo"] = 100
 
-	go mon.Start("foo")
+	go mon.Start("foo", "bar")
 
 	select {
 	case <-time.After(time.Second):
 		t.Fatal("usage was not reported: timeout")
 	case v := <-mon.Reports:
-		if v.Username != "foo" || v.Usage != 100 || !v.First || v.Last {
+		if v.Channel != "bar" || v.Usage != 100 || !v.First || v.Last {
 			t.Fatalf("unexpected usage reported: %+v", v)
 		}
 	}
@@ -42,17 +42,17 @@ func TestMonitor(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("usage was not reported: timeout")
 	case v := <-mon.Reports:
-		if v.Username != "foo" || v.Usage != 100 || v.First || v.Last {
+		if v.Channel != "bar" || v.Usage != 100 || v.First || v.Last {
 			t.Fatalf("unexpected usage reported: %+v", v)
 		}
 	}
 
-	mon.Stop("foo")
+	mon.Stop("foo", "bar")
 
 	works := false
 	for v := range mon.Reports {
 		fmt.Println(v)
-		works = v.Username == "foo" && v.Usage == 100 && !v.First && v.Last
+		works = v.Channel == "bar" && v.Usage == 100 && !v.First && v.Last
 		if works {
 			return
 		}

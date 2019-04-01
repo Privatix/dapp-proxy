@@ -1,4 +1,4 @@
-package adapter
+package flow
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	v2rayclient "github.com/privatix/dapp-proxy/v2ray-client"
+	v2rayclient "github.com/privatix/dapp-proxy/adapter/v2ray-client"
 	"github.com/privatix/dappctrl/sess"
 )
 
@@ -52,10 +52,7 @@ func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2raycl
 }
 
 // AsClient runs adapter in clients mode.
-func AsClient() {
-	conf := new(clientConfig)
-	readConfigFile(conf)
-
+func AsClient(conf *ClientConfig) {
 	sesscl := newProductSessClient(conf.Sess)
 
 	changesChan := connChangeSubscribe(sesscl)

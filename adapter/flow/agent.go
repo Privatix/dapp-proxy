@@ -1,4 +1,4 @@
-package adapter
+package flow
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/privatix/dappctrl/sess"
 )
 
-func newProductConfig(conf v2rayAgentConfig) map[string]string {
+func newProductConfig(conf V2RayAgentConfig) map[string]string {
 	m := make(map[string]string)
 	m[productAlterID] = fmt.Sprint(conf.AlterID)
 	addr, err := ipify.GetIp()
@@ -23,7 +23,7 @@ func newProductConfig(conf v2rayAgentConfig) map[string]string {
 	return m
 }
 
-func pushConfiguration(conf v2rayAgentConfig, sesscl *sess.Client) {
+func pushConfiguration(conf V2RayAgentConfig, sesscl *sess.Client) {
 	params := newProductConfig(conf)
 	err := sesscl.SetProductConfig(params)
 	must("could not push product configiration", err)
@@ -47,17 +47,12 @@ func markConfigAsPushed(dir string) {
 }
 
 // AsAgent runs adapter in agent mode.
-func AsAgent() {
-	conf := &agentConfig{}
-
-	confFile := readConfigFile(conf)
-
+func AsAgent(conf *AgentConfig, workdir string) {
 	sesscl := newProductSessClient(conf.Sess)
 
-	dir := filepath.Dir(confFile)
-	if configNotPushed(dir) {
+	if configNotPushed(workdir) {
 		pushConfiguration(conf.V2Ray, sesscl)
-		markConfigAsPushed(dir)
+		markConfigAsPushed(workdir)
 	}
 
 	conn := newV2RayAPIConn(conf.V2Ray.API)

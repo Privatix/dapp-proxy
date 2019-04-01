@@ -1,16 +1,14 @@
-package adapter
+package flow
 
 import (
 	"context"
-	"flag"
 	"time"
 
 	"google.golang.org/grpc"
 
-	"github.com/privatix/dapp-proxy/monitor"
-	v2rayclient "github.com/privatix/dapp-proxy/v2ray-client"
+	"github.com/privatix/dapp-proxy/adapter/monitor"
+	v2rayclient "github.com/privatix/dapp-proxy/adapter/v2ray-client"
 	"github.com/privatix/dappctrl/sess"
-	"github.com/privatix/dappctrl/util"
 )
 
 func must(msg string, err error) {
@@ -20,16 +18,6 @@ func must(msg string, err error) {
 		}
 		panic(err)
 	}
-}
-
-func readConfigFile(conf interface{}) string {
-	fconfig := flag.String(
-		"config", "config.json", "Configuration file")
-	flag.Parse()
-
-	err := util.ReadJSONFile(*fconfig, &conf)
-	must("failed to read configuration: ", err)
-	return *fconfig
 }
 
 func newV2RayUsersClient(conn *grpc.ClientConn, inboundTag string, alterID uint32) *v2rayclient.UsersClient {
@@ -48,7 +36,7 @@ func newV2RayStatsClient(conn *grpc.ClientConn, inboundTag string) *v2rayclient.
 	return client
 }
 
-func newProductSessClient(conf sessConfig) *sess.Client {
+func newProductSessClient(conf SessConfig) *sess.Client {
 	client, err := sess.Dial(context.Background(), conf.Endpoint,
 		conf.Origin, conf.Product, conf.Password)
 	must("", err)
@@ -70,7 +58,7 @@ func connChangeSubscribe(c *sess.Client) chan *sess.ConnChangeResult {
 	return ret
 }
 
-func newMonitor(client *v2rayclient.StatsClient, conf monitorConfig) *monitor.Monitor {
+func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig) *monitor.Monitor {
 	return monitor.NewMonitor(
 		monitor.NewV2RayClientUsageGetter(client),
 		time.Duration(conf.CountPeriod)*time.Second)

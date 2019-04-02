@@ -89,7 +89,7 @@ func AsAgent(conf *AgentConfig, workdir string) {
 		username := *endpoint.Username
 
 		switch change.Status {
-		case sess.ConnStart:
+		case sess.ConnCreate:
 			err = usersclient.AddUser(context.Background(), username)
 			must("", err)
 			mon.Start(username, change.Channel)

@@ -6,6 +6,7 @@ require (
 	github.com/jpillora/backoff v0.0.0-20180909062703-3050d21c67d7 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
 	github.com/privatix/dappctrl v0.0.0-20190401104017-3c55e38f445d
+	github.com/rakyll/statik v0.1.6
 	github.com/rdegges/go-ipify v0.0.0-20150526035502-2d94a6a86c40
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c // indirect

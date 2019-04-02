@@ -1,7 +1,8 @@
-package flow
+package mode
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"google.golang.org/grpc"
@@ -9,6 +10,7 @@ import (
 	"github.com/privatix/dapp-proxy/adapter/monitor"
 	v2rayclient "github.com/privatix/dapp-proxy/adapter/v2ray-client"
 	"github.com/privatix/dappctrl/sess"
+	"github.com/privatix/dappctrl/util/log"
 )
 
 func must(msg string, err error) {
@@ -18,6 +20,18 @@ func must(msg string, err error) {
 		}
 		panic(err)
 	}
+}
+
+func createLogger(conf *log.FileConfig) (log.Logger, io.Closer) {
+	elog, err := log.NewStderrLogger(conf.WriterConfig)
+	must("", err)
+
+	flog, closer, err := log.NewFileLogger(conf)
+	must("", err)
+
+	logger := log.NewMultiLogger(elog, flog)
+
+	return logger, closer
 }
 
 func newV2RayUsersClient(conn *grpc.ClientConn, inboundTag string, alterID uint32) *v2rayclient.UsersClient {
@@ -58,23 +72,30 @@ func connChangeSubscribe(c *sess.Client) chan *sess.ConnChangeResult {
 	return ret
 }
 
-func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig) *monitor.Monitor {
+func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig, logger log.Logger) *monitor.Monitor {
 	return monitor.NewMonitor(
 		monitor.NewV2RayClientUsageGetter(client),
-		time.Duration(conf.CountPeriod)*time.Second)
+		time.Duration(conf.CountPeriod)*time.Second,
+		logger,
+	)
 }
 
-func handleReports(mon *monitor.Monitor, sesscl *sess.Client) {
+func handleReports(mon *monitor.Monitor, sesscl *sess.Client, logger log.Logger) {
+	logger = logger.Add("method", "handleReports")
+
 	for report := range mon.Reports {
+		logger = logger.Add("report", *report)
+
 		if report.First {
 			_, err := sesscl.StartSession("", report.Channel, 0)
 			if err != nil {
-				// TODO: log error or fatal.
+				logger.Fatal(err.Error())
 			}
-		}
-		err := sesscl.UpdateSession(report.Channel, report.Usage, report.Last)
-		if err != nil {
-			// TODO: log error or fatal.
+		} else {
+			err := sesscl.UpdateSession(report.Channel, report.Usage, report.Last)
+			if err != nil {
+				logger.Error(err.Error())
+			}
 		}
 	}
 }

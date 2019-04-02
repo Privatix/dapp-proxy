@@ -2,6 +2,8 @@ package monitor
 
 import (
 	"time"
+
+	"github.com/privatix/dappctrl/util/log"
 )
 
 type action int
@@ -38,15 +40,17 @@ type Monitor struct {
 	Reports chan *Report
 
 	commands      map[string]chan *command
+	logger        log.Logger
 	reportsPeriod time.Duration
 	usage         UsageGetter
 }
 
 // NewMonitor creates a monitor.
-func NewMonitor(usage UsageGetter, period time.Duration) *Monitor {
+func NewMonitor(usage UsageGetter, period time.Duration, logger log.Logger) *Monitor {
 	return &Monitor{
 		Reports:       make(chan *Report),
 		commands:      make(map[string]chan *command),
+		logger:        logger.Add("type", "Monitor"),
 		reportsPeriod: period,
 		usage:         usage,
 	}
@@ -85,9 +89,11 @@ func (m *Monitor) Start(username, channel string) {
 
 // Stop stop monitoring traffic usage for username.
 func (m *Monitor) Stop(username, channel string) {
+	logger := m.logger.Add("username", username)
+
 	ch, ok := m.commands[username]
 	if !ok {
-		// TODO: log warning
+		logger.Warn("stop request for not monitoring username")
 		return
 	}
 	go func() {
@@ -100,9 +106,11 @@ func (m *Monitor) Stop(username, channel string) {
 }
 
 func (m *Monitor) reportUsage(cmd *command) {
+	logger := m.logger.Add("command", *cmd)
+
 	usage, err := m.usage.Get(cmd.username)
 	if err != nil {
-		// TODO: log error or fatal.
+		logger.Error(err.Error())
 	}
 
 	m.Reports <- &Report{

@@ -1,4 +1,4 @@
-package flow
+package mode
 
 import (
 	"context"
@@ -48,6 +48,7 @@ func markConfigAsPushed(dir string) {
 
 // AsAgent runs adapter in agent mode.
 func AsAgent(conf *AgentConfig, workdir string) {
+
 	sesscl := newProductSessClient(conf.Sess)
 
 	if configNotPushed(workdir) {
@@ -64,23 +65,28 @@ func AsAgent(conf *AgentConfig, workdir string) {
 
 	changesChan := connChangeSubscribe(sesscl)
 
-	mon := newMonitor(statsclient, conf.Monitor)
+	logger, closer := createLogger(conf.FileLog)
+	defer closer.Close()
 
-	go handleReports(mon, sesscl)
+	mon := newMonitor(statsclient, conf.Monitor, logger)
+
+	go handleReports(mon, sesscl, logger)
 
 	for change := range changesChan {
-		fmt.Printf("Connection change: %+v\n", *change)
+		logger := logger.Add("connectionChange", *change)
 
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
-		must("", err)
+		if err != nil {
+			logger.Fatal(err.Error())
+		}
+
+		logger = logger.Add("endpoint", *endpoint)
 
 		if endpoint.Username == nil {
-			// TODO: log error or fatal.
+			logger.Fatal("username of connection change is empty")
 		}
 
 		username := *endpoint.Username
-
-		fmt.Printf("endpoint: %+v\n", *endpoint)
 
 		switch change.Status {
 		case sess.ConnStart:

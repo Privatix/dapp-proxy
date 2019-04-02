@@ -1,4 +1,6 @@
-package flow
+package mode
+
+import "github.com/privatix/dappctrl/util/log"
 
 // Keys in product configuration.
 const (
@@ -9,6 +11,7 @@ const (
 
 // AgentConfig is agent adapter configuration.
 type AgentConfig struct {
+	FileLog *log.FileConfig
 	V2Ray   V2RayAgentConfig
 	Sess    SessConfig
 	Monitor MonitorConfig
@@ -30,6 +33,7 @@ type V2RayAgentConfig struct {
 
 // ClientConfig is client adapter configuration.
 type ClientConfig struct {
+	FileLog *log.FileConfig
 	V2Ray   V2RayClientConfig
 	Sess    SessConfig
 	Monitor MonitorConfig

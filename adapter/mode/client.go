@@ -1,4 +1,4 @@
-package flow
+package mode
 
 import (
 	"context"
@@ -53,6 +53,7 @@ func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2raycl
 
 // AsClient runs adapter in clients mode.
 func AsClient(conf *ClientConfig) {
+
 	sesscl := newProductSessClient(conf.Sess)
 
 	changesChan := connChangeSubscribe(sesscl)
@@ -61,40 +62,45 @@ func AsClient(conf *ClientConfig) {
 
 	statsclient := newV2RayStatsClient(conn, conf.V2Ray.InboundTag)
 
-	mon := newMonitor(statsclient, conf.Monitor)
+	logger, closer := createLogger(conf.FileLog)
+	defer closer.Close()
+
+	mon := newMonitor(statsclient, conf.Monitor, logger)
 
 	configurer := v2rayclient.NewConfigurer(conn)
 
-	go handleReports(mon, sesscl)
+	go handleReports(mon, sesscl, logger)
 
 	for change := range changesChan {
+		logger := logger.Add("connectionChange", *change)
+
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
-		must("", err)
+		if err != nil {
+			logger.Fatal(err.Error())
+		}
+
+		logger = logger.Add("endpoint", *endpoint)
 
 		if endpoint.Username == nil {
-			// TODO: log error or fatal.
+			logger.Fatal("username of connection change is empty")
 		}
 
 		username := *endpoint.Username
 
 		switch change.Status {
 		case sess.ConnStart:
-			// 1. Run/configure v2ray.
 			req, err := newConfigureRequest(username, endpoint.AdditionalParams)
 			if err != nil {
-				// TODO: log warning or fatal.
+				logger.Warn("could not build request to configure")
 				continue
 			}
 			configurer.ConfigureVmess(context.Background(), req)
-			// 2. Start monitoring.
 			mon.Start(username, change.Channel)
-			// TODO: 3. Start reading v2ray logs to detect and handle connection drops.
+			// TODO: Start reading v2ray logs to detect and handle connection drops.
 			// ? How to recognize logs particularly for this connection ?
 		case sess.ConnStop:
-			// 1. Stop or restore v2ray configuration.
 			configurer.RemoveVmess(context.Background())
-			// TODO: 2. Stop reading v2ray logs for this connection.
-			// 3. Stop monitoring.
+			// TODO: Stop reading v2ray logs for this connection.
 			mon.Stop(username, change.Channel)
 		}
 	}

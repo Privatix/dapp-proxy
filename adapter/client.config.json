@@ -1,4 +1,12 @@
 {
+    "FileLog": {
+        "Level": "info",
+        "StackLevel": "error",
+        "Prefix": "",
+        "UTC": false,
+        "Filename": "/var/log/dappproxy-%Y-%m-%d.log",
+        "FileMode": 420
+    },
     "V2Ray": {
         "API": "127.0.0.1:10081",
         "InboundTag": "socks-inbound"

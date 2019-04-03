@@ -54,7 +54,6 @@ func (c *Configurer) ConfigureVmess(ctx context.Context, req *VmessOutbound) err
 
 // RemoveVmess removes vmess outbound.
 func (c *Configurer) RemoveVmess(ctx context.Context) error {
-	fmt.Println("RemoveVmess")
 	err := c.addDefaultOutbound(ctx)
 	if err != nil {
 		return err

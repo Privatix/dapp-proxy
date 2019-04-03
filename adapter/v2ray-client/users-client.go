@@ -30,7 +30,6 @@ func NewUsersClient(conn *grpc.ClientConn, inboundTag string, alterID uint32) *U
 
 // AddUser adds a user with id to inbound.
 func (c *UsersClient) AddUser(ctx context.Context, id string) error {
-	fmt.Printf("AddUser: %s\n", id)
 	_, err := c.handler.AlterInbound(ctx, &command.AlterInboundRequest{
 		Tag: c.inboundTag,
 		Operation: serial.ToTypedMessage(&command.AddUserOperation{
@@ -51,7 +50,6 @@ func (c *UsersClient) AddUser(ctx context.Context, id string) error {
 
 // RemoveUser removes user with id from inbound.
 func (c *UsersClient) RemoveUser(ctx context.Context, id string) error {
-	fmt.Printf("RemoveUser: %s\n", id)
 	_, err := c.handler.AlterInbound(ctx, &command.AlterInboundRequest{
 		Tag: c.inboundTag,
 		Operation: serial.ToTypedMessage(&command.RemoveUserOperation{

@@ -99,6 +99,7 @@ func AsClient(conf *ClientConfig) {
 				logger.Warn("could not build request to configure")
 				continue
 			}
+			logger.Add("configureRequest", *req).Debug("configure vmess request")
 			configurer.ConfigureVmess(context.Background(), req)
 			mon.Start(username, change.Channel)
 			// TODO: Start reading v2ray logs to detect and handle connection drops.

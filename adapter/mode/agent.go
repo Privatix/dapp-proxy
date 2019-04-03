@@ -94,7 +94,7 @@ func AsAgent(conf *AgentConfig, workdir string) {
 
 		switch change.Status {
 		case sess.ConnCreate:
-			logger.Info("configuring proxy accept connection")
+			logger.Info("configuring proxy to accept connection")
 			err = usersclient.AddUser(context.Background(), username)
 			must("", err)
 			mon.Start(username, change.Channel)

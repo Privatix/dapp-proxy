@@ -51,7 +51,6 @@ func TestMonitor(t *testing.T) {
 
 	works := false
 	for v := range mon.Reports {
-		fmt.Println(v)
 		works = v.Channel == "bar" && v.Usage == 100 && !v.First && v.Last
 		if works {
 			return

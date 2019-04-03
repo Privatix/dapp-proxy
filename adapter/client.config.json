@@ -1,6 +1,6 @@
 {
     "FileLog": {
-        "Level": "info",
+        "Level": "debug",
         "StackLevel": "error",
         "Prefix": "",
         "UTC": false,

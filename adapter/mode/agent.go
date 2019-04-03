@@ -72,8 +72,12 @@ func AsAgent(conf *AgentConfig, workdir string) {
 
 	go handleReports(mon, sesscl, logger)
 
+	logger.Info("Starting proxy adapter")
+
 	for change := range changesChan {
 		logger := logger.Add("connectionChange", *change)
+
+		logger.Debug("received connection change")
 
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
 		if err != nil {
@@ -90,10 +94,12 @@ func AsAgent(conf *AgentConfig, workdir string) {
 
 		switch change.Status {
 		case sess.ConnCreate:
+			logger.Info("configuring proxy accept connection")
 			err = usersclient.AddUser(context.Background(), username)
 			must("", err)
 			mon.Start(username, change.Channel)
 		case sess.ConnStop:
+			logger.Info("configuring proxy to close connection")
 			err = usersclient.RemoveUser(context.Background(), username)
 			must("", err)
 			mon.Stop(username, change.Channel)

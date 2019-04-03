@@ -83,6 +83,8 @@ func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig, logger log.
 func handleReports(mon *monitor.Monitor, sesscl *sess.Client, logger log.Logger) {
 	logger = logger.Add("method", "handleReports")
 
+	logger.Debug("start handling usage reports")
+
 	for report := range mon.Reports {
 		logger = logger.Add("report", *report)
 

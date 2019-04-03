@@ -71,8 +71,12 @@ func AsClient(conf *ClientConfig) {
 
 	go handleReports(mon, sesscl, logger)
 
+	logger.Info("Starting proxy adapter")
+
 	for change := range changesChan {
 		logger := logger.Add("connectionChange", *change)
+
+		logger.Debug("received connection change")
 
 		endpoint, err := sesscl.GetEndpoint(change.Channel)
 		if err != nil {
@@ -89,6 +93,7 @@ func AsClient(conf *ClientConfig) {
 
 		switch change.Status {
 		case sess.ConnStart:
+			logger.Info("configuring proxy to connect")
 			req, err := newConfigureRequest(username, endpoint.AdditionalParams)
 			if err != nil {
 				logger.Warn("could not build request to configure")
@@ -99,6 +104,7 @@ func AsClient(conf *ClientConfig) {
 			// TODO: Start reading v2ray logs to detect and handle connection drops.
 			// ? How to recognize logs particularly for this connection ?
 		case sess.ConnStop:
+			logger.Info("removing proxy configuration to connect")
 			configurer.RemoveVmess(context.Background())
 			// TODO: Stop reading v2ray logs for this connection.
 			mon.Stop(username, change.Channel)

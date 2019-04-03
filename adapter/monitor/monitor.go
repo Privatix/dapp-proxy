@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"sync"
 	"time"
 
 	"github.com/privatix/dappctrl/util/log"
@@ -41,6 +42,7 @@ type Monitor struct {
 
 	commands      map[string]chan *command
 	logger        log.Logger
+	mu            sync.Mutex
 	reportsPeriod time.Duration
 	usage         UsageGetter
 }
@@ -58,13 +60,22 @@ func NewMonitor(usage UsageGetter, period time.Duration, logger log.Logger) *Mon
 
 // Start start monitor traffic usage for username.
 func (m *Monitor) Start(username, channel string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	logger := m.logger.Add("method", "Start", "username", username, "channel", channel)
+	logger.Info("start monitoring")
+
 	ch := make(chan *command)
 	m.commands[username] = ch
 	go func() {
 		for cmd := range ch {
+			logger.Add("cmd", *cmd).Debug("recieved command")
 			m.reportUsage(cmd)
 
 			go func(username string, act action) {
+				m.mu.Lock()
+				defer m.mu.Unlock()
 				ch := m.commands[username]
 				if act == stopMonitoring {
 					delete(m.commands, username)
@@ -91,12 +102,14 @@ func (m *Monitor) Start(username, channel string) {
 func (m *Monitor) Stop(username, channel string) {
 	logger := m.logger.Add("username", username)
 
-	ch, ok := m.commands[username]
-	if !ok {
-		logger.Warn("stop request for not monitoring username")
-		return
-	}
 	go func() {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		ch, ok := m.commands[username]
+		if !ok {
+			logger.Warn("stop request for not monitoring username")
+			return
+		}
 		ch <- &command{
 			channel:  channel,
 			username: username,
@@ -107,6 +120,7 @@ func (m *Monitor) Stop(username, channel string) {
 
 func (m *Monitor) reportUsage(cmd *command) {
 	logger := m.logger.Add("command", *cmd)
+	logger.Debug("reporting usage")
 
 	usage, err := m.usage.Get(cmd.username)
 	if err != nil {

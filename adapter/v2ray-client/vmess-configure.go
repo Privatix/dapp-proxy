@@ -45,7 +45,6 @@ type VmessOutbound struct {
 
 // ConfigureVmess configures vmess outbound.
 func (c *Configurer) ConfigureVmess(ctx context.Context, req *VmessOutbound) error {
-	fmt.Printf("ConfigureVmess req: %+v\n", req)
 	err := c.addVmessOutbound(ctx, req)
 	if err != nil {
 		return err

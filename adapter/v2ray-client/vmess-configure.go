@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	outboundVmessTag   = "outbound"
+	outboundVmessTag   = "outbound-vmess"
 	outboundDefaultTag = "outbound-default"
 )
 
@@ -115,7 +115,7 @@ func parseAddr(addr string) (net.Address, error) {
 	}
 	ip := make([]byte, 4)
 	for i, part := range parts {
-		v, err := strconv.ParseUint(part, 10, 8)
+		v, err := strconv.ParseUint(part, 10, 64)
 		if err != nil || v >= 1<<8 {
 			return nil, err
 		}

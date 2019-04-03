@@ -1,11 +1,11 @@
 package monitor_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/privatix/dapp-proxy/monitor"
+	"github.com/privatix/dapp-proxy/adapter/monitor"
+	"github.com/privatix/dappctrl/util/log"
 )
 
 type testUsageGetter struct {
@@ -23,7 +23,11 @@ func (usage *testUsageGetter) Get(user string) (uint64, error) {
 func TestMonitor(t *testing.T) {
 	usage := newTestUsageGetter()
 
-	mon := monitor.NewMonitor(usage, time.Millisecond)
+	logger, err := log.NewTestLogger(nil, false)
+	if err != nil {
+		panic(err)
+	}
+	mon := monitor.NewMonitor(usage, time.Millisecond, logger)
 
 	usage.reports["foo"] = 100
 

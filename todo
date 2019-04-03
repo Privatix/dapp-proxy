@@ -1,0 +1,47 @@
+Features
+
+
+
+
+v2ctl api --server=127.0.0.1:10085 StatsService.GetStats 'name: "user>>>123@gmail.com>>>traffic>>>downlink" reset: false'
+
+.\v2ctl.exe api --server=127.0.0.1:1081 StatsService.GetStats  'name: \"inbound>>>socks-inbound>>>traffic>>>uplink\" reset: false'
+
+.\v2ctl api --server=127.0.0.1:1081 StatsService.GetStats 'name: "inbound>>>socks-inbound>>>traffic>>>uplink" reset: false'
+
+
+
+insert into templates (id, hash, raw, kind) values('de78bb3d-d96e-4555-b708-91fe634fc6e8', '788900599cc4f94b85ed5705fba7faf75d1e82d937e7b19629e36fb4064c51cd', '{"schema": {"properties": {"agent": {"title": "agent uuid","type": "string" },"billingInterval": {"title": "billing interval","type": "number" },"billingType": { " enumNames": ["prepaid","postpaid" ],"enum": ["prepaid","postpaid" ],"title": "billing type","type": "string" },"country": {"title": "country","type": "string" },"freeUnits": {"title": "free units","type": "number" },"maxBillingUnitLag": {"title": "max billing unit lag","type": "number" },"maxSuspendTime": {"title": "max suspend time","type": "number" },"minUnits": {"title": "min units","type": "number" },"product": {"default": "1","type": "string" },"serviceName": {"title": "Name of service (e.g. Proxy)","type": "string" },"setupPrice": {"title": "setup fee","type": "number" },"supply": {"title": "service supply","type": "number" },"template": {"default": "1","type": "string" },"unitName": {"title": "like megabytes, minutes, etc","type": "string" },"unitPrice": {"title": "unit price","type": "number" },"unitType": {"title": "service unit","type": "number" } },"required": ["serviceName","supply","unitName","unitType","billingType","setupPrice","unitPrice","country","minUnits","billingInterval","maxBillingUnitLag","freeUnits","template","product","agent","maxSuspendTime" ],"title": "Privatix Proxy offering","type": "object" },"uiSchema": {"agent": {"ui:widget": "hidden" },"billingInterval": {"ui:help": "Specified in unit_of_service. Represent, how often Client MUST provide payment approval to Agent." },"billingType": {"ui:help": "prepaid/postpaid" },"country": {"ui:help": "Country of service endpoint in ISO 3166-1 alpha-2 format." },"freeUnits": {"ui:help": "Used to give free trial, by specifying how many intervals can be consumed without payment" },"maxBillingUnitLag": {"ui:help": "Maximum payment lag in units after, which Agent will suspend serviceusage." },"maxSuspendTime": {"ui:help": "Maximum time without service usage. Agent will consider, that Client will not use service and stop providing it. Period is specified in minutes." },"minUnits": {"ui:help": "Used to calculate minimum deposit required" },"product": {"ui:widget": "hidden" },"serviceName": {"ui:help": "enter name of service" },"setupPrice": {"ui:help": "setup fee" },"supply": {"ui:help": "Maximum supply of services according to service offerings. It represents maximum number of clients that can consume this service offering concurrently." },"template": {"ui:widget": "hidden" },"unitName": {"ui:help": "MB/Minutes" },"unitPrice": {"ui:help": "PRIX that must be paid for unit_of_service" },"unitType": {"ui:help": "units or seconds" } } }', 'offer');
+
+insert into templates (id, hash, raw, kind) values('a5fb9432-b145-426a-a822-cf1d94615e06', 'b80f4e507c9d787ceb560684987b3d2dfa8c01d0e9583234a4767865f8077247', '{        "definitions": {            "simple_url": {            "pattern": "^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?.+",            "type": "string"            },            "uuid": {            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",            "type": "string"            }        },        "properties": {            "paymentReceiverAddress": {                "$ref": "#/definitions/simple_url"            },            "serviceEndpointIP": {                "type": "string"            },            "serviceEndpointPort": {                "type": "number"            },            "templateHash": {                "type": "string"            },            "username": {                "$ref": "#/definitions/uuid"            }        },        "required": [            "templateHash",            "paymentReceiverAddress",            "serviceEndpointAddress",            "username"        ],        "title": "Privatix Proxy access",        "type": "object"    }', 'access');
+
+
+JnEf0314x98K
+insert into products (id, name, offer_tpl_id, offer_access_id, usage_rep_type, is_server, salt, password, client_ident, config, service_endpoint_address)
+values('33f14778-1413-4dc9-abe8-de0c62e3af12', 'Proxy', 'de78bb3d-d96e-4555-b708-91fe634fc6e8', 'a5fb9432-b145-426a-a822-cf1d94615e06', 'total', false, 1492414610544793252, 'JDJhJDEwJHVkRDl0MlJwRTdiL056bWFDaExqeGViLm5nMm5QbmxKc2pxR1EuLldNUWtFYVJaZ3ROSnhT', 'by_channel_id', '{}', '127.0.0.1');
+
+XodDZ9L5sark
+insert into products (id, name, offer_tpl_id, offer_access_id, usage_rep_type, is_server, salt, password, client_ident, config, service_endpoint_address)
+values('5b7ffc5c-0401-4166-a305-e011eacc9432', 'Proxy', 'de78bb3d-d96e-4555-b708-91fe634fc6e8', 'a5fb9432-b145-426a-a822-cf1d94615e06', 'total', true, 7461218426877998615, 'JDJhJDEwJFp2SVVuamY3V2hwdnpkY1puR3duU2VFRTZ5TEFnclJvd0ZFYkkuM2RxeVVrTS9DU2t3UjFT', 'by_channel_id', '{}', '127.0.0.1');
+
+
+
+[] Resolve this:
+    routine 53 [running]:
+    runtime/debug.Stack(0x45baca0, 0xc000147a10, 0xc0001e25c4)
+        /usr/local/Cellar/go/1.11.2/libexec/src/runtime/debug/stack.go:24 +0xa7
+    github.com/privatix/dappctrl/util/log.(*LoggerBase).Log(0xc000383e80, 0x46b5d3e, 0x5, 0xc0002ba900, 0xb2)
+        /Users/furkhat/go/pkg/mod/github.com/privatix/dappctrl@v0.0.0-20190402145318-c4e4ba7395f9/util/log/logger.go:113 +0x1bb
+    github.com/privatix/dappctrl/util/log.multiLogger.Log(0xc000383e60, 0x2, 0x2, 0x46b5d3e, 0x5, 0xc0002ba900, 0xb2)
+        /Users/furkhat/go/pkg/mod/github.com/privatix/dappctrl@v0.0.0-20190402145318-c4e4ba7395f9/util/log/multi_logger.go:20 +0x86
+    github.com/privatix/dappctrl/util/log.multiLogger.Error(0xc000383e60, 0x2, 0x2, 0xc0002ba900, 0xb2)
+        /Users/furkhat/go/pkg/mod/github.com/privatix/dappctrl@v0.0.0-20190402145318-c4e4ba7395f9/util/log/multi_logger.go:27 +0x68
+    github.com/privatix/dapp-proxy/adapter/monitor.(*Monitor).reportUsage(0xc00014c2c0, 0xc000385e30)
+        /Users/furkhat/projects/dapp-proxy/adapter/monitor/monitor.go:113 +0x1ce
+    github.com/privatix/dapp-proxy/adapter/monitor.(*Monitor).Start.func1(0xc000270780, 0xc00014c2c0, 0xc0002c6030, 0x24)
+        /Users/furkhat/projects/dapp-proxy/adapter/monitor/monitor.go:65 +0x52
+    created by github.com/privatix/dapp-proxy/adapter/monitor.(*Monitor).Start
+        /Users/furkhat/projects/dapp-proxy/adapter/monitor/monitor.go:63 +0xcd
+
+    panic: send on closed channel
+[] Add info logs

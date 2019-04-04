@@ -1,4 +1,4 @@
-package mode
+package adapter
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/privatix/dapp-proxy/adapter/monitor"
-	v2rayclient "github.com/privatix/dapp-proxy/adapter/v2ray-client"
+	"github.com/privatix/dapp-proxy/plugin/monitor"
+	v2rayclient "github.com/privatix/dapp-proxy/plugin/v2ray-client"
 	"github.com/privatix/dappctrl/sess"
 	"github.com/privatix/dappctrl/util/log"
 )

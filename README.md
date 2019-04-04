@@ -5,7 +5,7 @@ These instruction will help you build and configure dapp-proxy adapter.
 
 ### Building executable
 
-`go build -o <bin>/dapp_proxy <thisrepo>/adapter`
+`go build -o <bin>/dapp_proxy <thisrepo>/plugin`
 
 ### Configuration
 Adapter runs either for client or agent. The decision is made upon examining options in configuration. If it's suitable for agent, the agent mode starts otherwise starts client mode.
@@ -39,7 +39,7 @@ Adapter runs either for client or agent. The decision is made upon examining opt
 }
 ```
 
-Example [agent configuration](/adapter/agent.config.json)
+Example [agent configuration](/plugin/agent.config.json)
 
 #### Client
 ```
@@ -68,7 +68,7 @@ Example [agent configuration](/adapter/agent.config.json)
 }
 ```
 
-Example [client configuration](/adapter/client.config.json)
+Example [client configuration](/plugin/client.config.json)
 
 ## Tests
 

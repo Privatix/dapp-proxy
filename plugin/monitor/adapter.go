@@ -3,7 +3,7 @@ package monitor
 import (
 	"context"
 
-	v2rayclient "github.com/privatix/dapp-proxy/adapter/v2ray-client"
+	v2rayclient "github.com/privatix/dapp-proxy/plugin/v2ray-client"
 )
 
 // V2RayClientUsageGetter gets traffic usage using v2ray api.

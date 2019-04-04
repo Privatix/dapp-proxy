@@ -4,7 +4,7 @@ import (
 	"flag"
 	"path/filepath"
 
-	"github.com/privatix/dapp-proxy/adapter/mode"
+	"github.com/privatix/dapp-proxy/plugin/adapter"
 	"github.com/privatix/dappctrl/util"
 )
 
@@ -19,16 +19,16 @@ func main() {
 	fconfig := flag.String("config", "config.json", "Configuration file")
 	flag.Parse()
 
-	agentConf := new(mode.AgentConfig)
-	readConf(agentConf, *fconfig)
-	if mode.ValidAgentConf(agentConf) {
+	conf := new(adapter.Config)
+	readConf(conf, *fconfig)
+
+	// If configuration is valid for agent then start agent.
+	// Otherwise start client.
+	if adapter.ValidAgentConf(conf) {
 		workdir := filepath.Dir(*fconfig)
-		mode.AsAgent(agentConf, workdir)
+		adapter.AsAgent(conf, workdir)
 		return
 	}
 
-	// If configuration is not valid for agent, it's must be running for client.
-	conf := new(mode.ClientConfig)
-	readConf(conf, *fconfig)
-	mode.AsClient(conf)
+	adapter.AsClient(conf)
 }

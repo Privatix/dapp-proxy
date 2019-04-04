@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/privatix/dapp-proxy/adapter/monitor"
+	"github.com/privatix/dapp-proxy/plugin/monitor"
 	"github.com/privatix/dappctrl/util/log"
 )
 

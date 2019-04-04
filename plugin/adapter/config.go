@@ -1,4 +1,4 @@
-package mode
+package adapter
 
 import "github.com/privatix/dappctrl/util/log"
 
@@ -9,40 +9,25 @@ const (
 	productPort    = "port"
 )
 
-// AgentConfig is agent adapter configuration.
-type AgentConfig struct {
+// Config is agent adapter configuration.
+type Config struct {
 	FileLog *log.FileConfig
-	V2Ray   V2RayAgentConfig
+	V2Ray   V2RayConfig
 	Sess    SessConfig
 	Monitor MonitorConfig
 }
 
 // ValidAgentConf returns true if config has proper v2ray config.
-func ValidAgentConf(c *AgentConfig) bool {
-	// alter id cannot be 0
-	return c.V2Ray.AlterID > 0
+func ValidAgentConf(c *Config) bool {
+	return c.V2Ray.InboundPort > 0
 }
 
-// V2RayAgentConfig is agent v2ray config.
-type V2RayAgentConfig struct {
+// V2RayConfig is agent v2ray config.
+type V2RayConfig struct {
 	AlterID     uint32
 	API         string
 	InboundTag  string
 	InboundPort uint
-}
-
-// ClientConfig is client adapter configuration.
-type ClientConfig struct {
-	FileLog *log.FileConfig
-	V2Ray   V2RayClientConfig
-	Sess    SessConfig
-	Monitor MonitorConfig
-}
-
-// V2RayClientConfig is client v2ray config.
-type V2RayClientConfig struct {
-	API        string
-	InboundTag string
 }
 
 // SessConfig is configariotion to connect to session server.

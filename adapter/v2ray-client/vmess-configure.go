@@ -2,10 +2,6 @@ package v2rayclient
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"strconv"
-	"strings"
 
 	"google.golang.org/grpc"
 	"v2ray.com/core"
@@ -62,20 +58,18 @@ func (c *Configurer) RemoveVmess(ctx context.Context) error {
 }
 
 func (c *Configurer) addVmessOutbound(ctx context.Context, req *VmessOutbound) error {
-	addr, err := parseAddr(req.Address)
-	if err != nil {
-		return fmt.Errorf("could not parse ip address %s: %v", req.Address, err)
-	}
-	_, err = c.handler.AddOutbound(ctx, &command.AddOutboundRequest{
+	_, err := c.handler.AddOutbound(ctx, &command.AddOutboundRequest{
 		Outbound: &core.OutboundHandlerConfig{
 			Tag: outboundVmessTag,
 			ProxySettings: serial.ToTypedMessage(&outbound.Config{
 				Receiver: []*protocol.ServerEndpoint{
 					{
-						Address: net.NewIPOrDomain(addr),
+						Address: net.NewIPOrDomain(net.ParseAddress(req.Address)),
 						Port:    req.Port,
 						User: []*protocol.User{
 							{
+								Email: req.ID,
+								Level: 255,
 								Account: serial.ToTypedMessage(&vmess.Account{
 									Id:      req.ID,
 									AlterId: req.AlterID,
@@ -105,21 +99,4 @@ func (c *Configurer) removeOutbound(ctx context.Context, tag string) error {
 		Tag: tag,
 	})
 	return err
-}
-
-func parseAddr(addr string) (net.Address, error) {
-	parts := strings.Split(addr, ".")
-	err := errors.New("invalid ipv4")
-	if len(parts) != 4 {
-		return nil, err
-	}
-	ip := make([]byte, 4)
-	for i, part := range parts {
-		v, err := strconv.ParseUint(part, 10, 64)
-		if err != nil || v >= 1<<8 {
-			return nil, err
-		}
-		ip[i] = byte(v)
-	}
-	return net.IPAddress(ip), nil
 }

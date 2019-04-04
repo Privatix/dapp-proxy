@@ -9,7 +9,7 @@ const (
 	productPort    = "port"
 )
 
-// Config is agent adapter configuration.
+// Config is adapter configuration.
 type Config struct {
 	FileLog *log.FileConfig
 	V2Ray   V2RayConfig
@@ -22,7 +22,7 @@ func ValidAgentConf(c *Config) bool {
 	return c.V2Ray.InboundPort > 0
 }
 
-// V2RayConfig is agent v2ray config.
+// V2RayConfig is v2ray config.
 type V2RayConfig struct {
 	AlterID     uint32
 	API         string

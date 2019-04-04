@@ -49,11 +49,12 @@ func markConfigAsPushed(dir string) {
 
 // AsAgent runs adapter in agent mode.
 func AsAgent(conf *Config, workdir string) {
-	if configNotPushed(workdir) {
-		pushConfiguration(conf.V2Ray)
-		markConfigAsPushed(workdir)
+	beforeStart := func() {
+		if configNotPushed(workdir) {
+			pushConfiguration(conf.V2Ray)
+			markConfigAsPushed(workdir)
+		}
 	}
-
 	onConnCreate := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
 		adapterLogger.Info("configuring proxy to accept connection")
 		err := adapterUsersClient.AddUser(context.Background(), *endpoint.Username)
@@ -68,5 +69,5 @@ func AsAgent(conf *Config, workdir string) {
 		adapterMon.Stop(*endpoint.Username, change.Channel)
 	}
 
-	runAdapter(conf, onConnCreate, onConnStart, onConnStop)
+	runAdapter(conf, beforeStart, onConnCreate, onConnStart, onConnStop)
 }

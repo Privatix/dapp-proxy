@@ -84,7 +84,7 @@ func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig) *monitor.Mo
 }
 
 
-func newadapterConfigurerequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.VmessOutbound, error) {
+func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.VmessOutbound, error) {
 	prodconf := make(map[string]string)
 
 	err := json.Unmarshal(prodConfRaw, &prodconf)

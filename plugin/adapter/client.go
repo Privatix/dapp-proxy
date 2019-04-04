@@ -8,12 +8,12 @@ import (
 	"github.com/privatix/dappctrl/data"
 )
 
-// AsClient runs adapter in clients mode.
+// AsClient runs adapter in client mode.
 func AsClient(conf *Config) {
 	onConnCreate := func(_ *data.Endpoint, _ *sess.ConnChangeResult) {}
 	onConnStart := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
 		adapterLogger.Info("configuring proxy to connect")
-		req, err := newadapterConfigurerequest(*endpoint.Username, endpoint.AdditionalParams)
+		req, err := newConfigureRequest(*endpoint.Username, endpoint.AdditionalParams)
 		if err != nil {
 			adapterLogger.Warn("could not build request to configure")
 			return
@@ -31,5 +31,5 @@ func AsClient(conf *Config) {
 		adapterMon.Stop(*endpoint.Username, change.Channel)
 	}
 
-	runAdapter(conf, onConnCreate, onConnStart, onConnStop)
+	runAdapter(conf, func() {}, onConnCreate, onConnStart, onConnStop)
 }

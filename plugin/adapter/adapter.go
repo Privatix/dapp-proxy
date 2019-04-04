@@ -42,7 +42,7 @@ func handleReports() {
 	}
 }
 
-func runAdapter(conf *Config, onConnCreate, onConnStart, onConnStop func(*data.Endpoint, *sess.ConnChangeResult)) {
+func runAdapter(conf *Config, beforeStart func(), onConnCreate, onConnStart, onConnStop func(*data.Endpoint, *sess.ConnChangeResult)) {
 	adapterSessClient = newProductSessClient(conf.Sess)
 
 	conn := newV2RayAPIConn(conf.V2Ray.API)
@@ -61,6 +61,8 @@ func runAdapter(conf *Config, onConnCreate, onConnStart, onConnStop func(*data.E
 	defer closer.Close()
 
 	adapterMon = newMonitor(adapterStatsClient, conf.Monitor)
+
+	beforeStart()
 
 	go handleReports()
 

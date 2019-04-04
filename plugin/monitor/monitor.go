@@ -8,8 +8,6 @@ import (
 	"github.com/privatix/dappctrl/util/log"
 )
 
-type action int
-
 // UsageGetter abstracts how traffic usage is computed/extracted.
 type UsageGetter interface {
 	Get(username string) (uint64, error)
@@ -69,6 +67,7 @@ func (m *Monitor) Start(username, channel string) {
 				first = false
 			case <-ctx.Done():
 				m.reportUsage(username, channel, false, true)
+				return
 			}
 		}
 	}()
@@ -88,7 +87,7 @@ func (m *Monitor) Stop(username, channel string) {
 	}
 
 	cancel()
-	delete(m.cancel, username)
+	delete(m.cancel, username+channel)
 }
 
 func (m *Monitor) reportUsage(username, channel string, f, l bool) {

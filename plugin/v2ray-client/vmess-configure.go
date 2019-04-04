@@ -41,20 +41,20 @@ type VmessOutbound struct {
 
 // ConfigureVmess configures vmess outbound.
 func (c *Configurer) ConfigureVmess(ctx context.Context, req *VmessOutbound) error {
-	err := c.addVmessOutbound(ctx, req)
+	err := c.removeOutbound(ctx, outboundDefaultTag)
 	if err != nil {
 		return err
 	}
-	return c.removeOutbound(ctx, outboundDefaultTag)
+	return c.addVmessOutbound(ctx, req)
 }
 
 // RemoveVmess removes vmess outbound.
 func (c *Configurer) RemoveVmess(ctx context.Context) error {
-	err := c.addDefaultOutbound(ctx)
+	err := c.removeOutbound(ctx, outboundVmessTag)
 	if err != nil {
 		return err
 	}
-	return c.removeOutbound(ctx, outboundVmessTag)
+	return c.addDefaultOutbound(ctx)
 }
 
 func (c *Configurer) addVmessOutbound(ctx context.Context, req *VmessOutbound) error {

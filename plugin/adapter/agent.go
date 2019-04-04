@@ -9,6 +9,7 @@ import (
 
 	ipify "github.com/rdegges/go-ipify"
 
+	"github.com/privatix/dappctrl/data"
 	"github.com/privatix/dappctrl/sess"
 )
 
@@ -23,9 +24,9 @@ func newProductConfig(conf V2RayConfig) map[string]string {
 	return m
 }
 
-func pushConfiguration(conf V2RayConfig, sesscl *sess.Client) {
+func pushConfiguration(conf V2RayConfig) {
 	params := newProductConfig(conf)
-	err := sesscl.SetProductConfig(params)
+	err := adapterSessClient.SetProductConfig(params)
 	must("could not push product configiration", err)
 }
 
@@ -48,61 +49,24 @@ func markConfigAsPushed(dir string) {
 
 // AsAgent runs adapter in agent mode.
 func AsAgent(conf *Config, workdir string) {
-
-	sesscl := newProductSessClient(conf.Sess)
-
 	if configNotPushed(workdir) {
-		pushConfiguration(conf.V2Ray, sesscl)
+		pushConfiguration(conf.V2Ray)
 		markConfigAsPushed(workdir)
 	}
 
-	conn := newV2RayAPIConn(conf.V2Ray.API)
-
-	statsclient := newV2RayStatsClient(conn, conf.V2Ray.InboundTag)
-
-	usersclient := newV2RayUsersClient(conn, conf.V2Ray.InboundTag,
-		conf.V2Ray.AlterID)
-
-	changesChan := connChangeSubscribe(sesscl)
-
-	logger, closer := createLogger(conf.FileLog)
-	defer closer.Close()
-
-	mon := newMonitor(statsclient, conf.Monitor, logger)
-
-	go handleReports(mon, sesscl, logger)
-
-	logger.Info("Starting proxy adapter")
-
-	for change := range changesChan {
-		logger := logger.Add("connectionChange", *change)
-
-		logger.Debug("received connection change")
-
-		endpoint, err := sesscl.GetEndpoint(change.Channel)
-		if err != nil {
-			logger.Fatal(err.Error())
-		}
-
-		logger = logger.Add("endpoint", *endpoint)
-
-		if endpoint.Username == nil {
-			logger.Fatal("username of connection change is empty")
-		}
-
-		username := *endpoint.Username
-
-		switch change.Status {
-		case sess.ConnCreate:
-			logger.Info("configuring proxy to accept connection")
-			err = usersclient.AddUser(context.Background(), username)
-			must("", err)
-			mon.Start(username, change.Channel)
-		case sess.ConnStop:
-			logger.Info("configuring proxy to close connection")
-			err = usersclient.RemoveUser(context.Background(), username)
-			must("", err)
-			mon.Stop(username, change.Channel)
-		}
+	onConnCreate := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
+		adapterLogger.Info("configuring proxy to accept connection")
+		err := adapterUsersClient.AddUser(context.Background(), *endpoint.Username)
+		must("", err)
+		adapterMon.Start(*endpoint.Username, change.Channel)
 	}
+	onConnStart := func(_ *data.Endpoint, _ *sess.ConnChangeResult) {}
+	onConnStop := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
+		adapterLogger.Info("configuring proxy to close connection")
+		err := adapterUsersClient.RemoveUser(context.Background(), *endpoint.Username)
+		must("", err)
+		adapterMon.Stop(*endpoint.Username, change.Channel)
+	}
+
+	runAdapter(conf, onConnCreate, onConnStart, onConnStop)
 }

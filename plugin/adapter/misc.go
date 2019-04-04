@@ -3,7 +3,10 @@ package adapter
 import (
 	"context"
 	"io"
+	"encoding/json"
 	"time"
+	"fmt"
+	"strconv"
 
 	"google.golang.org/grpc"
 
@@ -72,32 +75,52 @@ func connChangeSubscribe(c *sess.Client) chan *sess.ConnChangeResult {
 	return ret
 }
 
-func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig, logger log.Logger) *monitor.Monitor {
+func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig) *monitor.Monitor {
 	return monitor.NewMonitor(
 		monitor.NewV2RayClientUsageGetter(client),
 		time.Duration(conf.CountPeriod)*time.Second,
-		logger,
+		adapterLogger,
 	)
 }
 
-func handleReports(mon *monitor.Monitor, sesscl *sess.Client, logger log.Logger) {
-	logger = logger.Add("method", "handleReports")
 
-	logger.Debug("start handling usage reports")
+func newadapterConfigurerequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.VmessOutbound, error) {
+	prodconf := make(map[string]string)
 
-	for report := range mon.Reports {
-		logger = logger.Add("report", *report)
-
-		if report.First {
-			_, err := sesscl.StartSession("", report.Channel, 0)
-			if err != nil {
-				logger.Fatal(err.Error())
-			}
-		} else {
-			err := sesscl.UpdateSession(report.Channel, report.Usage, report.Last)
-			if err != nil {
-				logger.Error(err.Error())
-			}
-		}
+	err := json.Unmarshal(prodConfRaw, &prodconf)
+	if err != nil {
+		return nil, err
 	}
+
+	addr, ok := prodconf[productAddress]
+	if !ok {
+		return nil, fmt.Errorf("could not find %s", productAddress)
+	}
+
+	portRaw, ok := prodconf[productPort]
+	if !ok {
+		return nil, fmt.Errorf("could not find %s", productPort)
+	}
+
+	port, err := strconv.ParseUint(portRaw, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	alterIDRaw, ok := prodconf[productAlterID]
+	if !ok {
+		return nil, fmt.Errorf("could not find %s", productAlterID)
+	}
+
+	alterID, err := strconv.ParseUint(alterIDRaw, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v2rayclient.VmessOutbound{
+		Address: addr,
+		AlterID: uint32(alterID),
+		ID:      username,
+		Port:    uint32(port),
+	}, nil
 }

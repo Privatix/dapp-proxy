@@ -32,7 +32,7 @@
   ],
   "outbounds": [
     {
-      "protocol": "freedom",
+      "protocol": "blackhole",
       "settings": {},
       "tag": "outbound-default"
     }

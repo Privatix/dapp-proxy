@@ -1,11 +1,11 @@
 package monitor_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
-	"github.com/privatix/dapp-proxy/monitor"
+	"github.com/privatix/dapp-proxy/plugin/monitor"
+	"github.com/privatix/dappctrl/util/log"
 )
 
 type testUsageGetter struct {
@@ -23,17 +23,21 @@ func (usage *testUsageGetter) Get(user string) (uint64, error) {
 func TestMonitor(t *testing.T) {
 	usage := newTestUsageGetter()
 
-	mon := monitor.NewMonitor(usage, time.Millisecond)
+	logger, err := log.NewTestLogger(nil, false)
+	if err != nil {
+		panic(err)
+	}
+	mon := monitor.NewMonitor(usage, time.Millisecond, logger)
 
 	usage.reports["foo"] = 100
 
-	go mon.Start("foo")
+	go mon.Start("foo", "bar")
 
 	select {
 	case <-time.After(time.Second):
 		t.Fatal("usage was not reported: timeout")
 	case v := <-mon.Reports:
-		if v.Username != "foo" || v.Usage != 100 || !v.First || v.Last {
+		if v.Channel != "bar" || v.Usage != 100 || !v.First || v.Last {
 			t.Fatalf("unexpected usage reported: %+v", v)
 		}
 	}
@@ -42,17 +46,16 @@ func TestMonitor(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("usage was not reported: timeout")
 	case v := <-mon.Reports:
-		if v.Username != "foo" || v.Usage != 100 || v.First || v.Last {
+		if v.Channel != "bar" || v.Usage != 100 || v.First || v.Last {
 			t.Fatalf("unexpected usage reported: %+v", v)
 		}
 	}
 
-	mon.Stop("foo")
+	mon.Stop("foo", "bar")
 
 	works := false
 	for v := range mon.Reports {
-		fmt.Println(v)
-		works = v.Username == "foo" && v.Usage == 100 && !v.First && v.Last
+		works = v.Channel == "bar" && v.Usage == 100 && !v.First && v.Last
 		if works {
 			return
 		}

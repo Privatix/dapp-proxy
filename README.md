@@ -30,7 +30,7 @@ allows Agents and Clients to buy and sell their internet traffic in form of Prox
 
 # Getting started
 
-These instruction will help you build and configure `dapp-prox`y adapter.
+These instruction will help you build and configure `dapp-proxy` adapter.
 
 ## Building executable
 

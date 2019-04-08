@@ -9,7 +9,7 @@ import (
 	"v2ray.com/core/common/net"
 	"v2ray.com/core/common/protocol"
 	"v2ray.com/core/common/serial"
-	"v2ray.com/core/proxy/freedom"
+	"v2ray.com/core/proxy/blackhole"
 	"v2ray.com/core/proxy/vmess"
 	"v2ray.com/core/proxy/vmess/outbound"
 )
@@ -88,7 +88,7 @@ func (c *Configurer) addDefaultOutbound(ctx context.Context) error {
 	_, err := c.handler.AddOutbound(ctx, &command.AddOutboundRequest{
 		Outbound: &core.OutboundHandlerConfig{
 			Tag:           outboundDefaultTag,
-			ProxySettings: serial.ToTypedMessage(&freedom.Config{}),
+			ProxySettings: serial.ToTypedMessage(&blackhole.Config{}),
 		},
 	})
 	return err

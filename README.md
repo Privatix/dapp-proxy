@@ -10,7 +10,11 @@ allows Agents and Clients to buy and sell their internet traffic in form of Prox
 
 ## Custom integration includes
 
--   Start and stop of session by Privatix Core
+* Start and stop of session by Privatix Core
+* Start and stop of session by Privatix Core
+* v2ray client sessions authentication
+* v2ray traffic usage reporting to Privatix core (is a must for automatic payments)
+* Push v2ray server configuration
 
 ## Benefits from Privatix Core
 

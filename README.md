@@ -15,6 +15,7 @@ allows Agents and Clients to buy and sell their internet traffic in form of Prox
 * v2ray client sessions authentication
 * v2ray traffic usage reporting to Privatix core (is a must for automatic payments)
 * Push v2ray server configuration
+* Configure v2ray inbound/outbound based on active and available channels 
 
 ## Benefits from Privatix Core
 

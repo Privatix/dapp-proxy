@@ -1,6 +1,6 @@
 {
   "log": {
-    "loglevel": "warning"
+    "loglevel": "debug"
   },
   "inbounds": [{
       "port": 1080,
@@ -32,7 +32,7 @@
   ],
   "outbounds": [
     {
-      "protocol": "freedom",
+      "protocol": "blackhole",
       "settings": {},
       "tag": "outbound-default"
     }

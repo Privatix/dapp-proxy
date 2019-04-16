@@ -1,43 +1,38 @@
 {
-    "id": "a5fb9432-b145-426a-a822-cf1d94615e06",
-    "hash": "b80f4e507c9d787ceb560684987b3d2dfa8c01d0e9583234a4767865f8077247",
-    "raw": {
-        "definitions": {
-            "simple_url": {
-            "pattern": "^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?.+",
-            "type": "string"
-            },
-            "uuid": {
-            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-            "type": "string"
-            }
+    "definitions": {
+        "simple_url": {
+        "pattern": "^(http:\\/\\/www\\.|https:\\/\\/www\\.|http:\\/\\/|https:\\/\\/)?.+",
+        "type": "string"
         },
-        "properties": {
-            "paymentReceiverAddress": {
-                "$ref": "#/definitions/simple_url"
-            },
-            "serviceEndpointIP": {
-                "type": "string"
-            },
-            "serviceEndpointPort": {
-                "type": "number"
-            },
-            "templateHash": {
-                "type": "string"
-            },
-            "username": {
-                "$ref": "#/definitions/uuid"
-            }
-        },
-        "required": [
-            "templateHash",
-            "paymentReceiverAddress",
-            "serviceEndpointAddress",
-            "username"
-        ],
-        "title": "Privatix Proxy access",
-        "type": "object"
+        "uuid": {
+        "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        "type": "string"
+        }
     },
-    "kind": "access"
+    "properties": {
+        "paymentReceiverAddress": {
+            "$ref": "#/definitions/simple_url"
+        },
+        "serviceEndpointIP": {
+            "type": "string"
+        },
+        "serviceEndpointPort": {
+            "type": "number"
+        },
+        "templateHash": {
+            "type": "string"
+        },
+        "username": {
+            "$ref": "#/definitions/uuid"
+        }
+    },
+    "required": [
+        "templateHash",
+        "paymentReceiverAddress",
+        "serviceEndpointAddress",
+        "username"
+    ],
+    "title": "Privatix Proxy access",
+    "type": "object"
 }
 

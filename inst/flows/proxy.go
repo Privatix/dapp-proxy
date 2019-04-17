@@ -47,10 +47,10 @@ func NewProxyInstallation() *ProxyInstallation {
 			V2RayClientConfig:   "config/client.v2ray.config.json",
 			V2RayExec:           "bin/v2ray/v2ray",
 			PluginExec:          "bin/dappproxy",
-			PluginAgentConf:     "config/agent.adapter.config.json",
-			PluginClientConf:    "config/client.adapter.config.json",
-			PluginAgentConfTpl:  "template/agent.adapter.config.json",
-			PluginClientConfTpl: "template/client.adapter.config.json",
+			PluginAgentConf:     "config/adapter.agent.config.json",
+			PluginClientConf:    "config/adapter.client.config.json",
+			PluginAgentConfTpl:  "template/adapter.agent.config.json",
+			PluginClientConfTpl: "template/adapter.client.config.json",
 		},
 	}
 }

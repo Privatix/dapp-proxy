@@ -1,18 +1,18 @@
 {
     "CoreDapp": true,
     "Install": [
-        {"Admin" : true,"Command": "bin/inst install --config ../config/installer.client.config.json"}
+        {"Admin" : true,"Command": "bin/inst install --role=client --proddir=.."}
     ],
     "Update": [
-        {"Admin" : true,"Command": "bin/inst update"}
+        {"Admin" : true,"Command": "bin/inst update --proddir=.."}
     ],
     "Start": [
-        {"Admin" : true,"Command": "bin/inst start"}
+        {"Admin" : true,"Command": "bin/inst start --proddir=.."}
     ],
     "Stop": [
-        {"Admin" : true,"Command": "bin/inst stop"}
+        {"Admin" : true,"Command": "bin/inst stop --proddir=.."}
     ],
     "Remove": [
-        {"Admin" : true,"Command": "bin/inst remove"}
+        {"Admin" : true,"Command": "bin/inst remove --proddir=.."}
     ]
 }

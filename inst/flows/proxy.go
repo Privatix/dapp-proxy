@@ -1,8 +1,6 @@
 package flows
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/privatix/dappctrl/util"
+
+	installerutil "github.com/privatix/dapp-installer/util"
 )
 
 const (
@@ -17,6 +17,7 @@ const (
 )
 
 type prodDirPath struct {
+	DataDir             string
 	V2RayAgentConfig    string
 	V2RayClientConfig   string
 	V2RayExec           string
@@ -29,12 +30,13 @@ type prodDirPath struct {
 
 // ProxyInstallation is proxy product installation details.
 type ProxyInstallation struct {
-	IsAgent          bool
-	ProdDir          string
-	V2RayDaemonName  string
-	V2RayDaemonDesc  string
-	PluginDaemonName string
-	PluginDaemonDesc string
+	IsAgent             bool
+	ProdDir             string
+	ProdDirToUpdateFrom string
+	V2RayDaemonName     string
+	V2RayDaemonDesc     string
+	PluginDaemonName    string
+	PluginDaemonDesc    string
 
 	Path prodDirPath
 }
@@ -43,6 +45,7 @@ type ProxyInstallation struct {
 func NewProxyInstallation() *ProxyInstallation {
 	return &ProxyInstallation{
 		Path: prodDirPath{
+			DataDir:             "data",
 			V2RayAgentConfig:    "config/agent.v2ray.config.json",
 			V2RayClientConfig:   "config/client.v2ray.config.json",
 			V2RayExec:           "bin/v2ray/v2ray",
@@ -53,12 +56,6 @@ func NewProxyInstallation() *ProxyInstallation {
 			PluginClientConfTpl: "template/adapter.client.config.json",
 		},
 	}
-}
-
-func hash(s string) string {
-	h := sha1.New()
-	h.Write([]byte(strings.ToLower(s)))
-	return hex.EncodeToString(h.Sum(nil))
 }
 
 // init reads installation state or inits new.
@@ -72,7 +69,7 @@ func (p *ProxyInstallation) init(proddir, role string) error {
 	p.IsAgent = role == roleAgent
 
 	// Set daemon names and descriptions.
-	h := hash(p.ProdDir)
+	h := installerutil.Hash(p.ProdDir)
 	p.V2RayDaemonName = daemonName("v2ray", h)
 	p.V2RayDaemonDesc = daemonDescription(p.role(), "v2ray", h)
 	p.PluginDaemonName = daemonName("dappproxy", h)
@@ -122,48 +119,68 @@ func daemonDescription(role, name, h string) string {
 	return fmt.Sprintf("Privatix %s %s %s", role, name, h)
 }
 
-func (p *ProxyInstallation) pathJoin(f string) string {
+func (p *ProxyInstallation) prodPathJoin(f string) string {
 	return filepath.Join(p.ProdDir, f)
 }
 
+func (p *ProxyInstallation) prodPathToUpdateFromJoin(f string) string {
+	return filepath.Join(p.ProdDirToUpdateFrom, f)
+}
+
 func (p *ProxyInstallation) v2rayExecPath() string {
-	return p.pathJoin(p.Path.V2RayExec)
+	return p.prodPathJoin(p.Path.V2RayExec)
 }
 
 func (p *ProxyInstallation) v2rayConfPath() string {
 	if p.IsAgent {
-		return p.pathJoin(p.Path.V2RayAgentConfig)
+		return p.prodPathJoin(p.Path.V2RayAgentConfig)
 	}
-	return p.pathJoin(p.Path.V2RayClientConfig)
+	return p.prodPathJoin(p.Path.V2RayClientConfig)
 }
 
 func (p *ProxyInstallation) pluginExecPath() string {
-	return p.pathJoin(p.Path.PluginExec)
+	return p.prodPathJoin(p.Path.PluginExec)
 }
 
 func (p *ProxyInstallation) pluginConfPath() string {
 	if p.IsAgent {
-		return p.pathJoin(p.Path.PluginAgentConf)
+		return p.prodPathJoin(p.Path.PluginAgentConf)
 	}
-	return p.pathJoin(p.Path.PluginClientConf)
+	return p.prodPathJoin(p.Path.PluginClientConf)
 }
 
 func (p *ProxyInstallation) pluginClientConfTplPath() string {
-	return p.pathJoin(p.Path.PluginClientConfTpl)
+	return p.prodPathJoin(p.Path.PluginClientConfTpl)
+}
+
+func (p *ProxyInstallation) pluginClientConfTplPathToUpdateFrom() string {
+	return p.prodPathToUpdateFromJoin(p.Path.PluginClientConfTpl)
 }
 
 func (p *ProxyInstallation) pluginAgentConfigTplPath() string {
-	return p.pathJoin(p.Path.PluginAgentConfTpl)
+	return p.prodPathJoin(p.Path.PluginAgentConfTpl)
+}
+
+func (p *ProxyInstallation) pluginAgentConfigTplPathToUpdateFrom() string {
+	return p.prodPathToUpdateFromJoin(p.Path.PluginAgentConfTpl)
 }
 
 func (p *ProxyInstallation) pluginAgentConfigPath() string {
-	return p.pathJoin(p.Path.PluginAgentConf)
+	return p.prodPathJoin(p.Path.PluginAgentConf)
+}
+
+func (p *ProxyInstallation) pluginAgentConfigPathToUpdateFrom() string {
+	return p.prodPathToUpdateFromJoin(p.Path.PluginAgentConf)
 }
 
 func (p *ProxyInstallation) pluginClientConfigPath() string {
-	return p.pathJoin(p.Path.PluginClientConf)
+	return p.prodPathJoin(p.Path.PluginClientConf)
+}
+
+func (p *ProxyInstallation) pluginClientConfigPathToUpdateFrom() string {
+	return p.prodPathToUpdateFromJoin(p.Path.PluginClientConf)
 }
 
 func (p *ProxyInstallation) logsDirPath() string {
-	return p.pathJoin("log")
+	return p.prodPathJoin("log")
 }

@@ -7,8 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/takama/daemon"
+
+	"github.com/privatix/dapp-installer/util"
 )
 
 const (
@@ -79,16 +82,16 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 	return setLogPathAndCopy(p, p.pluginClientConfTplPath(), p.pluginClientConfigPath())
 }
 
-func createDaemons(p *ProxyInstallation) error {
-	err := createV2RayDaemon(p)
-	if err == nil {
-		err = createAdapterDaemon(p)
+func prepareUpdateFromPluginConfigs(p *ProxyInstallation) error {
+	err := setLogPathAndCopy(p, p.pluginAgentConfigTplPathToUpdateFrom(), p.pluginAgentConfigPathToUpdateFrom())
+	if err != nil {
+		return err
 	}
-	return err
+	return setLogPathAndCopy(p, p.pluginClientConfTplPathToUpdateFrom(), p.pluginClientConfigPathToUpdateFrom())
 }
 
 func removeDaemons(p *ProxyInstallation) error {
-	err := removeAdapterDaemon(p)
+	err := removePluginDaemon(p)
 	if err == nil {
 		err = removeV2RayDaemon(p)
 	}
@@ -123,7 +126,7 @@ func removeV2RayDaemon(p *ProxyInstallation) error {
 	return nil
 }
 
-func createAdapterDaemon(p *ProxyInstallation) error {
+func createPluginDaemon(p *ProxyInstallation) error {
 	service, err := daemon.New(p.PluginDaemonName, p.PluginDaemonDesc, p.V2RayDaemonName)
 	if err != nil {
 		return fmt.Errorf("failed to create adapter daemon: %v", err)
@@ -137,7 +140,7 @@ func createAdapterDaemon(p *ProxyInstallation) error {
 	return nil
 }
 
-func removeAdapterDaemon(p *ProxyInstallation) error {
+func removePluginDaemon(p *ProxyInstallation) error {
 	service, err := daemon.New(p.PluginDaemonName, "")
 	if err != nil {
 		return fmt.Errorf("failed to get adapter daemon: %v", err)
@@ -178,25 +181,30 @@ func startDaemon(name string) error {
 	return nil
 }
 
-func startDaemons(p *ProxyInstallation) error {
-	err := startDaemon(p.V2RayDaemonName)
-	if err == nil {
-		err = startDaemon(p.PluginDaemonName)
-	}
-	return err
+func startV2rayDaemon(p *ProxyInstallation) error {
+	return startDaemon(p.V2RayDaemonName)
 }
 
-func stopDaemonsSilent(p *ProxyInstallation) error {
-	for _, name := range []string{p.V2RayDaemonName, p.PluginDaemonName} {
-		service, err := daemon.New(name, "")
-		if err != nil {
-			return fmt.Errorf("failed to get '%s' daemon: %v", name, err)
-		}
+func startPluginDaemon(p *ProxyInstallation) error {
+	return startDaemon(p.PluginDaemonName)
+}
 
-		service.Stop()
+func stopV2rayDaemon(p *ProxyInstallation) error {
+	return stopDaemon(p.V2RayDaemonName)
+}
+
+func stopPluginDaemon(p *ProxyInstallation) error {
+	return stopDaemon(p.PluginDaemonName)
+}
+
+func stopDaemon(name string) error {
+	service, err := daemon.New(name, "")
+	if err != nil {
+		return fmt.Errorf("failed to get '%s' daemon: %v", name, err)
 	}
 
-	return nil
+	_, err = service.Stop()
+	return err
 }
 
 func stopDaemons(p *ProxyInstallation) error {
@@ -223,14 +231,14 @@ func readInstallationDetails(p *ProxyInstallation) error {
 	return p.readInstallationDetails()
 }
 
-func parseRemoveFlags(p *ProxyInstallation) error {
+func parseProdDirOrHelpFlags(p *ProxyInstallation, helpMsg string) error {
 	h := flag.Bool("help", false, "Display installer help")
 	proddir := flag.String("proddir", "", "Product install directory")
 
 	flag.CommandLine.Parse(os.Args[2:])
 
 	if *h || *proddir == "" {
-		fmt.Println(helpRemove)
+		fmt.Println(helpMsg)
 		os.Exit(0)
 	}
 
@@ -239,27 +247,54 @@ func parseRemoveFlags(p *ProxyInstallation) error {
 	return nil
 }
 
-func checkInstallation(p *ProxyInstallation) error {
-	// TODO: implement.
-	return nil
+func parseRemoveFlags(p *ProxyInstallation) error {
+	return parseProdDirOrHelpFlags(p, helpRemove)
 }
 
 func parseUpdateFlags(p *ProxyInstallation) error {
-	// TODO: implement.
+	return parseProdDirOrHelpFlags(p, helpUpdate)
+}
+
+func locateProductTempDir(p *ProxyInstallation) error {
+	productTempPath := os.Getenv("PRIVATIX_TEMP_PRODUCT")
+	_, uuidProd := filepath.Split(p.ProdDir)
+
+	if productTempPath == "" {
+		return fmt.Errorf("PRIVATIX_TEMP_PRODUCT is empty")
+	}
+
+	found := ""
+
+	err := filepath.Walk(productTempPath, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			return err
+		}
+		_, dir := filepath.Split(path)
+
+		if err == nil && strings.EqualFold(dir, uuidProd) {
+			found = path
+		}
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	if found == "" {
+		return fmt.Errorf("could not find product dir '%s' at PRIVATIX_TEMP_PRODUCT", uuidProd)
+	}
+
+	p.ProdDirToUpdateFrom = found
+
 	return nil
 }
 
-func copyDataDir(p *ProxyInstallation) error {
-	// TODO: implement.
-	return nil
+func copyDataDirFiles(p *ProxyInstallation) error {
+	return util.CopyDir(p.prodPathJoin(p.Path.DataDir), p.prodPathToUpdateFromJoin(p.Path.DataDir))
 }
 
-func parseStartFlags(p *ProxyInstallation) error {
-	// TODO: implement.
-	return nil
-}
-
-func parseStopFlags(p *ProxyInstallation) error {
+func copyAndMergeConfigs(p *ProxyInstallation) error {
 	// TODO: implement.
 	return nil
 }

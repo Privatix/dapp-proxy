@@ -58,7 +58,7 @@ func AsAgent(conf *Config, workdir string) {
 		}
 	}
 	onConnCreate := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
-		adapterLogger.Info("configuring proxy to accept connection")
+		adapterLogger.Info("configuring proxy to accept connections")
 		err := adapterUsersClient.AddUser(context.Background(), *endpoint.Username)
 		must("", err)
 		u := v2rayclient.NewUserUsageGetter(adapterV2RayConn, *endpoint.Username)
@@ -66,7 +66,7 @@ func AsAgent(conf *Config, workdir string) {
 	}
 	onConnStart := func(_ *data.Endpoint, _ *sess.ConnChangeResult) {}
 	onConnStop := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
-		adapterLogger.Info("configuring proxy to close connection")
+		adapterLogger.Info("configuring proxy to close connections")
 		err := adapterUsersClient.RemoveUser(context.Background(), *endpoint.Username)
 		must("", err)
 		adapterMon.Stop(change.Channel)

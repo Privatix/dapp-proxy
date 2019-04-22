@@ -15,10 +15,7 @@ func AsClient(conf *Config) {
 	onConnStart := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
 		adapterLogger.Info("configuring proxy to connect")
 		req, err := newConfigureRequest(*endpoint.Username, endpoint.AdditionalParams)
-		if err != nil {
-			adapterLogger.Warn("could not build request to configure")
-			return
-		}
+		must("could not build request to configure", err)
 		adapterLogger.Add("adapterConfigurerequest", *req).Debug("configure vmess request")
 		adapterConfigurer.ConfigureVmess(context.Background(), req)
 		u := v2rayclient.NewInboundUsageGetter(adapterV2RayConn, conf.V2Ray.InboundTag)

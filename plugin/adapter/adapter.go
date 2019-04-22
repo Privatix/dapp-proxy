@@ -3,21 +3,23 @@ package adapter
 import (
 	"io"
 
+	"google.golang.org/grpc"
+
 	"github.com/privatix/dapp-proxy/plugin/monitor"
 	"github.com/privatix/dapp-proxy/plugin/v2ray-client"
+	"github.com/privatix/dappctrl/data"
 	"github.com/privatix/dappctrl/sess"
 	"github.com/privatix/dappctrl/util/log"
-	"github.com/privatix/dappctrl/data"
 )
 
 var (
+	adapterV2RayConn   *grpc.ClientConn
 	adapterChangesChan chan *sess.ConnChangeResult
-	adapterConfigurer *v2rayclient.Configurer
-	adapterLogger     log.Logger
-	adapterMon        *monitor.Monitor
-	adapterSessClient     *sess.Client
-	adapterStatsClient      *v2rayclient.StatsClient
-	adapterUsersClient      *v2rayclient.UsersClient
+	adapterConfigurer  *v2rayclient.Configurer
+	adapterLogger      log.Logger
+	adapterMon         *monitor.Monitor
+	adapterSessClient  *sess.Client
+	adapterUsersClient *v2rayclient.UsersClient
 )
 
 func handleReports() {
@@ -45,13 +47,11 @@ func handleReports() {
 func runAdapter(conf *Config, beforeStart func(), onConnCreate, onConnStart, onConnStop func(*data.Endpoint, *sess.ConnChangeResult)) {
 	adapterSessClient = newProductSessClient(conf.Sess)
 
-	conn := newV2RayAPIConn(conf.V2Ray.API)
- 
-	adapterConfigurer = v2rayclient.NewConfigurer(conn)
+	adapterV2RayConn = newV2RayAPIConn(conf.V2Ray.API)
 
-	adapterStatsClient = newV2RayStatsClient(conn, conf.V2Ray.InboundTag)
+	adapterConfigurer = v2rayclient.NewConfigurer(adapterV2RayConn)
 
-	adapterUsersClient = newV2RayUsersClient(conn, conf.V2Ray.InboundTag,
+	adapterUsersClient = newV2RayUsersClient(adapterV2RayConn, conf.V2Ray.InboundTag,
 		conf.V2Ray.AlterID)
 
 	adapterChangesChan = connChangeSubscribe(adapterSessClient)
@@ -60,7 +60,7 @@ func runAdapter(conf *Config, beforeStart func(), onConnCreate, onConnStart, onC
 	adapterLogger, closer = createLogger(conf.FileLog)
 	defer closer.Close()
 
-	adapterMon = newMonitor(adapterStatsClient, conf.Monitor)
+	adapterMon = newMonitor(conf.Monitor)
 
 	beforeStart()
 

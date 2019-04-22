@@ -6,17 +6,17 @@ import (
 	v2rayclient "github.com/privatix/dapp-proxy/plugin/v2ray-client"
 )
 
-// V2RayClientUsageGetter gets traffic usage using v2ray api.
-type V2RayClientUsageGetter struct {
-	client *v2rayclient.StatsClient
+// UsageGetterAdapter meant to hide timeout like logic from monitor.
+type UsageGetterAdapter struct {
+	getter *v2rayclient.UsageGetter
 }
 
-// NewV2RayClientUsageGetter creates an instance.
-func NewV2RayClientUsageGetter(client *v2rayclient.StatsClient) *V2RayClientUsageGetter {
-	return &V2RayClientUsageGetter{client}
+// NewUsageGetterAdapter creates an instance.
+func NewUsageGetterAdapter(getter *v2rayclient.UsageGetter) *UsageGetterAdapter {
+	return &UsageGetterAdapter{getter}
 }
 
-// Get returns traffic usage for username.
-func (getter *V2RayClientUsageGetter) Get(username string) (uint64, error) {
-	return getter.client.GetUsage(context.Background(), username)
+// Get returns traffic usage.
+func (g *UsageGetterAdapter) Get() (uint64, error) {
+	return g.getter.GetUsage(context.Background())
 }

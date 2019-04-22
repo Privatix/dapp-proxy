@@ -2,11 +2,11 @@ package adapter
 
 import (
 	"context"
-	"io"
 	"encoding/json"
-	"time"
 	"fmt"
+	"io"
 	"strconv"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -48,11 +48,6 @@ func newV2RayAPIConn(addr string) *grpc.ClientConn {
 	return conn
 }
 
-func newV2RayStatsClient(conn *grpc.ClientConn, inboundTag string) *v2rayclient.StatsClient {
-	client := v2rayclient.NewStatsClient(conn, inboundTag)
-	return client
-}
-
 func newProductSessClient(conf SessConfig) *sess.Client {
 	client, err := sess.Dial(context.Background(), conf.Endpoint,
 		conf.Origin, conf.Product, conf.Password)
@@ -75,14 +70,12 @@ func connChangeSubscribe(c *sess.Client) chan *sess.ConnChangeResult {
 	return ret
 }
 
-func newMonitor(client *v2rayclient.StatsClient, conf MonitorConfig) *monitor.Monitor {
+func newMonitor(conf MonitorConfig) *monitor.Monitor {
 	return monitor.NewMonitor(
-		monitor.NewV2RayClientUsageGetter(client),
 		time.Duration(conf.CountPeriod)*time.Second,
 		adapterLogger,
 	)
 }
-
 
 func newConfigureRequest(username string, prodConfRaw json.RawMessage) (*v2rayclient.VmessOutbound, error) {
 	prodconf := make(map[string]string)

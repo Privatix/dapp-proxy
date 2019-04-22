@@ -9,6 +9,8 @@ import (
 
 	ipify "github.com/rdegges/go-ipify"
 
+	"github.com/privatix/dapp-proxy/plugin/monitor"
+	"github.com/privatix/dapp-proxy/plugin/v2ray-client"
 	"github.com/privatix/dappctrl/data"
 	"github.com/privatix/dappctrl/sess"
 )
@@ -59,14 +61,15 @@ func AsAgent(conf *Config, workdir string) {
 		adapterLogger.Info("configuring proxy to accept connection")
 		err := adapterUsersClient.AddUser(context.Background(), *endpoint.Username)
 		must("", err)
-		adapterMon.Start(*endpoint.Username, change.Channel)
+		u := v2rayclient.NewUserUsageGetter(adapterV2RayConn, *endpoint.Username)
+		adapterMon.Start(change.Channel, monitor.NewUsageGetterAdapter(u))
 	}
 	onConnStart := func(_ *data.Endpoint, _ *sess.ConnChangeResult) {}
 	onConnStop := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
 		adapterLogger.Info("configuring proxy to close connection")
 		err := adapterUsersClient.RemoveUser(context.Background(), *endpoint.Username)
 		must("", err)
-		adapterMon.Stop(*endpoint.Username, change.Channel)
+		adapterMon.Stop(change.Channel)
 	}
 
 	runAdapter(conf, beforeStart, onConnCreate, onConnStart, onConnStop)

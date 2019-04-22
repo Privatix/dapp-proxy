@@ -9,29 +9,29 @@ import (
 )
 
 type testUsageGetter struct {
-	reports map[string]uint64
+	usage uint64
 }
 
 func newTestUsageGetter() *testUsageGetter {
-	return &testUsageGetter{make(map[string]uint64)}
+	return &testUsageGetter{}
 }
 
-func (usage *testUsageGetter) Get(user string) (uint64, error) {
-	return usage.reports[user], nil
+func (g *testUsageGetter) Get() (uint64, error) {
+	return g.usage, nil
 }
 
 func TestMonitor(t *testing.T) {
-	usage := newTestUsageGetter()
+	tUsageGetter := newTestUsageGetter()
 
 	logger, err := log.NewTestLogger(nil, false)
 	if err != nil {
 		panic(err)
 	}
-	mon := monitor.NewMonitor(usage, time.Millisecond, logger)
+	mon := monitor.NewMonitor(time.Millisecond, logger)
 
-	usage.reports["foo"] = 100
+	tUsageGetter.usage = 100
 
-	go mon.Start("foo", "bar")
+	go mon.Start("bar", tUsageGetter)
 
 	select {
 	case <-time.After(time.Second):
@@ -51,7 +51,7 @@ func TestMonitor(t *testing.T) {
 		}
 	}
 
-	mon.Stop("foo", "bar")
+	mon.Stop("bar")
 
 	works := false
 	for v := range mon.Reports {

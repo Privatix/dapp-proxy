@@ -3,9 +3,10 @@ package adapter
 import (
 	"context"
 
-	"github.com/privatix/dappctrl/sess"
-
+	"github.com/privatix/dapp-proxy/plugin/monitor"
+	"github.com/privatix/dapp-proxy/plugin/v2ray-client"
 	"github.com/privatix/dappctrl/data"
+	"github.com/privatix/dappctrl/sess"
 )
 
 // AsClient runs adapter in client mode.
@@ -20,7 +21,8 @@ func AsClient(conf *Config) {
 		}
 		adapterLogger.Add("adapterConfigurerequest", *req).Debug("configure vmess request")
 		adapterConfigurer.ConfigureVmess(context.Background(), req)
-		adapterMon.Start(*endpoint.Username, change.Channel)
+		u := v2rayclient.NewInboundUsageGetter(adapterV2RayConn, conf.V2Ray.InboundTag)
+		adapterMon.Start(change.Channel, monitor.NewUsageGetterAdapter(u))
 		// TODO: Start reading v2ray logs to detect and handle connection drops.
 		// ? How to recognize logs particularly for this connection ?
 	}
@@ -28,7 +30,7 @@ func AsClient(conf *Config) {
 		adapterLogger.Info("removing proxy configuration to connect")
 		adapterConfigurer.RemoveVmess(context.Background())
 		// TODO: Stop reading v2ray logs for this connection.
-		adapterMon.Stop(*endpoint.Username, change.Channel)
+		adapterMon.Stop(change.Channel)
 	}
 
 	runAdapter(conf, func() {}, onConnCreate, onConnStart, onConnStop)

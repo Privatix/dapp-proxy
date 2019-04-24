@@ -28,6 +28,8 @@ github.com/denisbrodbeck/machineid v1.0.1 h1:geKr9qtkB876mXguW2X6TU4ZynleN6ezuMS
 github.com/denisbrodbeck/machineid v1.0.1/go.mod h1:dJUwb7PTidGDeYyUBmXZ2GphQBbjJCrnectwCyxcUSI=
 github.com/ethereum/go-ethereum v1.8.23 h1:xVKYpRpe3cbkaWN8gsRgStsyTvz3s82PcQsbEofjhEQ=
 github.com/ethereum/go-ethereum v1.8.23/go.mod h1:PwpWDrCLZrV+tfrhqqF6kPknbISMHaJv9Ln3kPCZLwY=
+github.com/ethereum/go-ethereum v1.8.27 h1:d+gkiLaBDk5fn3Pe/xNVaMrB/ozI+AUB2IlVBp29IrY=
+github.com/ethereum/go-ethereum v1.8.27/go.mod h1:PwpWDrCLZrV+tfrhqqF6kPknbISMHaJv9Ln3kPCZLwY=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-stack/stack v1.8.0 h1:5SgMzNM5HxrEjV0ww2lTmX6E2Izsfxas4+YHWRs3Lsk=
@@ -93,6 +95,8 @@ github.com/privatix/dappctrl v0.0.0-20190401104017-3c55e38f445d h1:UxwkP+ZC2V/CI
 github.com/privatix/dappctrl v0.0.0-20190401104017-3c55e38f445d/go.mod h1:WSJxnCObSRXHmyIg5Ju7S2MA1AB8FAgNU9xM/9J4ZL4=
 github.com/privatix/dappctrl v0.0.0-20190402145318-c4e4ba7395f9 h1:gP2lyo1ttP7wnEsUTAuqMffKw1S/PK13dZqFds3L2I0=
 github.com/privatix/dappctrl v0.0.0-20190402145318-c4e4ba7395f9/go.mod h1:WSJxnCObSRXHmyIg5Ju7S2MA1AB8FAgNU9xM/9J4ZL4=
+github.com/privatix/dappctrl v0.0.0-20190424091356-90433d5df03a h1:CGKqR9QiufQ6gFyNe+wA/ZtaZxtdpnyw0p9LMh2/S3U=
+github.com/privatix/dappctrl v0.0.0-20190424091356-90433d5df03a/go.mod h1:6vY7FQc2c5TjNG0I8ujxWLNWywcEvVJHsLDh9bfDvK4=
 github.com/privatix/dappctrl v0.21.1 h1:LloJxlxt4SSV5H8D8HOVwGJMB5C2G1bp8bowpqURKbA=
 github.com/privatix/dappctrl v0.21.1/go.mod h1:My3ax8gOgQirBoTaJqMN+BahTfLMl5qxYW78bPOivtc=
 github.com/rakyll/statik v0.1.6 h1:uICcfUXpgqtw2VopbIncslhAmE5hwc4g20TEyEENBNs=

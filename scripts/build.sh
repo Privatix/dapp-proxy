@@ -31,10 +31,10 @@ echo
 echo go build
 echo
 
+echo $GOPATH/bin/dappproxy
 go build -o $GOPATH/bin/dappproxy -ldflags "-X main.Commit=$GIT_COMMIT \
     -X main.Version=$GIT_RELEASE" -tags=notest \
     ${DAPP_PROXY_DIR}/plugin || exit 1
-echo $GOPATH/bin/dappproxy
 
 echo $GOPATH/bin/proxy-inst
 go build -o $GOPATH/bin/proxy-inst -ldflags "-X main.Commit=$GIT_COMMIT \

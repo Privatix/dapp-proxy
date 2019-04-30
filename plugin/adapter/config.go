@@ -15,6 +15,11 @@ type Config struct {
 	V2Ray   V2RayConfig
 	Sess    SessConfig
 	Monitor MonitorConfig
+
+	// Only for clients.
+	// ConfigureProxyScript can configure operating system to use
+	// or stop using sock5 proxy.
+	ConfigureProxyScript string
 }
 
 // ValidAgentConf returns true if config has proper v2ray config.

@@ -33,6 +33,7 @@ func AsClient(conf *Config) {
 			adapterLogger.Fatal("could not configure vmess: " + err.Error())
 		}
 
+		adapterLogger.Info("configuring operating system to use proxy")
 		err = osconnector.ConfigureWithScript(conf.ConfigureProxyScript, proxyHostname, proxyPort)
 		must("could not configure operating system to use proxy", err)
 
@@ -52,6 +53,7 @@ func AsClient(conf *Config) {
 		err := adapterConfigurer.RemoveVmess(context.Background())
 		must("could not remove vmess", err)
 
+		adapterLogger.Info("configuring operating system to stop using proxy")
 		err = osconnector.RollbackWithScript(conf.ConfigureProxyScript)
 		must("could not configure operating system to stop using proxy", err)
 

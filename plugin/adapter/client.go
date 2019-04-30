@@ -19,6 +19,9 @@ func AsClient(conf *Config) {
 		adapterLogger.Add("adapterConfigurerequest", *req).Debug("configure vmess request")
 		adapterConfigurer.ConfigureVmess(context.Background(), req)
 		u := v2rayclient.NewInboundUsageGetter(adapterV2RayConn, conf.V2Ray.InboundTag)
+		adapterLogger.Info("requesting traffic counter reset")
+		err = u.RequestReset(context.Background())
+		must("", err)
 		adapterMon.Start(change.Channel, monitor.NewUsageGetterAdapter(u))
 		// TODO: Start reading v2ray logs to detect and handle connection drops.
 		// ? How to recognize logs particularly for this connection ?

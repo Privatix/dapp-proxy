@@ -17,9 +17,12 @@ type Config struct {
 	Monitor MonitorConfig
 
 	// Only for clients.
+
 	// ConfigureProxyScript can configure operating system to use
 	// or stop using sock5 proxy.
 	ConfigureProxyScript string
+	// ProxyPort is the port proxy is listening on '127.0.0.1'
+	ProxyPort int
 }
 
 // ValidAgentConf returns true if config has proper v2ray config.

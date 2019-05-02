@@ -1,7 +1,7 @@
 package osconnector
 
 // ConfigureWithScript uses script to configure proxy.
-func ConfigureWithScript(script, host, port string) error {
+func ConfigureWithScript(script, host string, port int) error {
 	panic("osconnector.ConfigureWithScript is not implemented")
 }
 

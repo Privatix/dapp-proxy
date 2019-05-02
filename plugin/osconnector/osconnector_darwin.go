@@ -1,6 +1,7 @@
 package osconnector
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 )
@@ -15,10 +16,10 @@ func changedServicesFileNamePath(script string) string {
 }
 
 // ConfigureWithScript uses script to configure proxy.
-func ConfigureWithScript(script, host, port string) error {
+func ConfigureWithScript(script, host string, port int) error {
 	chsf := changedServicesFileNamePath(script)
 
-	cmd := exec.Command("/bin/sh", script, "on", chsf, host, port)
+	cmd := exec.Command("/bin/sh", script, "on", chsf, host, fmt.Sprint(port))
 	return cmd.Run()
 }
 

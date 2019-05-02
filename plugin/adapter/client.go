@@ -10,12 +10,6 @@ import (
 	"github.com/privatix/dappctrl/sess"
 )
 
-// host and port proxy is running on.
-const (
-	proxyHostname = "127.0.0.1"
-	proxyPort     = "1080"
-)
-
 // AsClient runs adapter in client mode.
 func AsClient(conf *Config) {
 	onConnCreate := func(_ *data.Endpoint, _ *sess.ConnChangeResult) {}
@@ -34,7 +28,7 @@ func AsClient(conf *Config) {
 		}
 
 		adapterLogger.Info("configuring operating system to use proxy")
-		err = osconnector.ConfigureWithScript(conf.ConfigureProxyScript, proxyHostname, proxyPort)
+		err = osconnector.ConfigureWithScript(conf.ConfigureProxyScript, "127.0.0.1", conf.ProxyPort)
 		must("could not configure operating system to use proxy", err)
 
 		u := v2rayclient.NewInboundUsageGetter(adapterV2RayConn, conf.V2Ray.InboundTag)

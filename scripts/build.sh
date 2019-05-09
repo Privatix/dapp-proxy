@@ -31,10 +31,19 @@ echo
 echo go build
 echo
 
+if [[ ! -d "${GOPATH}/bin/" ]]; then
+    mkdir "${GOPATH}/bin/" || exit 1
+fi
+
+echo $GOPATH/bin/dappproxy
 go build -o $GOPATH/bin/dappproxy -ldflags "-X main.Commit=$GIT_COMMIT \
     -X main.Version=$GIT_RELEASE" -tags=notest \
-    ${DAPP_PROXY_DIR}/adapter || exit 1
-echo $GOPATH/bin/dappproxy
+    ${DAPP_PROXY_DIR}/plugin || exit 1
+
+echo $GOPATH/bin/proxy-inst
+go build -o $GOPATH/bin/proxy-inst -ldflags "-X main.Commit=$GIT_COMMIT \
+    -X main.Version=$GIT_RELEASE" -tags=notest \
+    ${DAPP_PROXY_DIR}/inst || exit 1
 
 echo
 echo done

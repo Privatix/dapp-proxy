@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Privatix/dapp-proxy.svg?branch=master)](https://travis-ci.org/Privatix/dapp-proxy)
 [![Go report](http://goreportcard.com/badge/github.com/Privatix/dapp-proxy)](https://goreportcard.com/report/github.com/Privatix/dapp-proxy)
 [![Maintainability](https://api.codeclimate.com/v1/badges/9a17679c51f051697bb5/maintainability)](https://codeclimate.com/github/Privatix/dapp-proxy/maintainability)
 

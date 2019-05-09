@@ -1,0 +1,18 @@
+{
+    "CoreDapp": true,
+    "Install": [
+        {"Admin" : true,"Command": "bin/inst install --role=agent --proddir=.."}
+    ],
+    "Update": [
+        {"Admin" : true,"Command": "bin/inst update --proddir=.."}
+    ],
+    "Start": [
+        {"Admin" : true,"Command": "bin/inst start --proddir=.."}
+    ],
+    "Stop": [
+        {"Admin" : true,"Command": "bin/inst stop --proddir=.."}
+    ],
+    "Remove": [
+        {"Admin" : true,"Command": "bin/inst remove --proddir=.."}
+    ]
+}

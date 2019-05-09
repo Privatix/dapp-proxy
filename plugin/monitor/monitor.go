@@ -10,7 +10,7 @@ import (
 
 // UsageGetter abstracts how traffic usage is computed/extracted.
 type UsageGetter interface {
-	Get(username string) (uint64, error)
+	Get() (uint64, error)
 }
 
 // Report is usage report format.
@@ -29,29 +29,30 @@ type Monitor struct {
 	logger        log.Logger
 	cancel        map[string]context.CancelFunc
 	reportsPeriod time.Duration
-	usage         UsageGetter
+	usages        map[string]UsageGetter
 }
 
 // NewMonitor creates a monitor.
-func NewMonitor(usage UsageGetter, period time.Duration, logger log.Logger) *Monitor {
+func NewMonitor(period time.Duration, logger log.Logger) *Monitor {
 	return &Monitor{
 		Reports:       make(chan *Report),
 		logger:        logger.Add("type", "Monitor"),
 		cancel:        make(map[string]context.CancelFunc),
 		reportsPeriod: period,
-		usage:         usage,
+		usages:        make(map[string]UsageGetter),
 	}
 }
 
 // Start start monitor traffic usage for username.
-func (m *Monitor) Start(username, channel string) {
-	logger := m.logger.Add("method", "Start", "username", username, "channel", channel)
+func (m *Monitor) Start(channel string, getter UsageGetter) {
+	logger := m.logger.Add("method", "Start", "channel", channel)
 	logger.Info("start monitoring")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	m.mu.Lock()
-	m.cancel[username+channel] = cancel
+	m.usages[channel] = getter
+	m.cancel[channel] = cancel
 	m.mu.Unlock()
 
 	go func() {
@@ -63,10 +64,10 @@ func (m *Monitor) Start(username, channel string) {
 		for {
 			select {
 			case <-ticker.C:
-				m.reportUsage(username, channel, first, false)
+				m.reportUsage(channel, first, false)
 				first = false
 			case <-ctx.Done():
-				m.reportUsage(username, channel, false, true)
+				m.reportUsage(channel, false, true)
 				return
 			}
 		}
@@ -74,30 +75,36 @@ func (m *Monitor) Start(username, channel string) {
 }
 
 // Stop stop monitoring traffic usage for username.
-func (m *Monitor) Stop(username, channel string) {
-	logger := m.logger.Add("username", username)
+func (m *Monitor) Stop(channel string) {
+	logger := m.logger.Add("channel", channel)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	cancel, ok := m.cancel[username+channel]
+	cancel, ok := m.cancel[channel]
 	if !ok {
 		logger.Warn("stop request for not monitoring username")
 		return
 	}
 
 	cancel()
-	delete(m.cancel, username+channel)
+	delete(m.cancel, channel)
 }
 
-func (m *Monitor) reportUsage(username, channel string, f, l bool) {
-	logger := m.logger.Add("username", username)
+func (m *Monitor) reportUsage(channel string, f, l bool) {
+	logger := m.logger.Add()
 
 	logger.Debug("reporting usage")
 
-	usage, err := m.usage.Get(username)
+	usage, err := m.usages[channel].Get()
 	if err != nil {
 		logger.Error(err.Error())
+	}
+
+	if l {
+		m.mu.Lock()
+		delete(m.usages, channel)
+		m.mu.Unlock()
 	}
 
 	m.Reports <- &Report{

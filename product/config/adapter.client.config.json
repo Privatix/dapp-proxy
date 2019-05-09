@@ -1,0 +1,25 @@
+{
+    "ConfigureProxyScript": "/Users/furkhat/projects/dapp-proxy/product/data/scripts/configuresocksfirewallproxy.sh",
+    "FileLog": {
+        "Level": "debug",
+        "StackLevel": "error",
+        "Prefix": "",
+        "UTC": false,
+        "Filename": "/Users/furkhat/projects/dapp-proxy/product/log/dappproxy.log",
+        "FileMode": 420
+    },
+    "V2Ray": {
+        "API": "127.0.0.1:10081",
+        "InboundTag": "socks-inbound"
+    },
+    "ProxyPort": 1080,
+    "Sess": {
+        "Endpoint": "ws://localhost:8000/ws",
+        "Origin": "",
+        "Product": "33f14778-1413-4dc9-abe8-de0c62e3af12",
+        "Password": "JnEf0314x98K"
+    },
+    "Monitor": {
+        "CountPeriod": 5
+    }
+}

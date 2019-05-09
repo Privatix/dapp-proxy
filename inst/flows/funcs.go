@@ -47,24 +47,30 @@ func validateInstallEnvironment(p *ProxyInstallation) error {
 	return nil
 }
 
-func setLogPathAndCopy(p *ProxyInstallation, tpl, dest string) error {
-	dat, err := ioutil.ReadFile(tpl)
+func readJSON(f string) (map[string]interface{}, error) {
+	dat, err := ioutil.ReadFile(f)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(dat, &m)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	return m, nil
+}
+
+func setLogPath(p *ProxyInstallation, m map[string]interface{}) {
 	newflog := m["FileLog"].(map[string]interface{})
 
 	newflog["Filename"] = filepath.Join(p.logsDirPath(), "dappproxy-%Y-%m-%d.log")
 
 	m["FileLog"] = newflog
+}
 
+func saveToFile(m map[string]interface{}, dest string) error {
 	f, err := os.Create(dest)
 	if err != nil {
 		return err
@@ -75,19 +81,51 @@ func setLogPathAndCopy(p *ProxyInstallation, tpl, dest string) error {
 }
 
 func preparePluginConfigs(p *ProxyInstallation) error {
-	err := setLogPathAndCopy(p, p.pluginAgentConfigTplPath(), p.pluginAgentConfigPath())
+	if p.IsAgent {
+		m, err := readJSON(p.pluginAgentConfigTplPath())
+		if err != nil {
+			return err
+		}
+
+		setLogPath(p, m)
+
+		return saveToFile(m, p.pluginAgentConfigPath())
+	}
+
+	m, err := readJSON(p.pluginClientConfTplPath())
 	if err != nil {
 		return err
 	}
-	return setLogPathAndCopy(p, p.pluginClientConfTplPath(), p.pluginClientConfigPath())
+
+	setLogPath(p, m)
+
+	m["ConfigureProxyScript"] = p.configureProxyScript()
+
+	return saveToFile(m, p.pluginClientConfigPath())
 }
 
 func prepareUpdateFromPluginConfigs(p *ProxyInstallation) error {
-	err := setLogPathAndCopy(p, p.pluginAgentConfigTplPathToUpdateFrom(), p.pluginAgentConfigPathToUpdateFrom())
+	if p.IsAgent {
+		m, err := readJSON(p.pluginAgentConfigTplPathToUpdateFrom())
+		if err != nil {
+			return err
+		}
+
+		setLogPath(p, m)
+
+		return saveToFile(m, p.pluginAgentConfigPathToUpdateFrom())
+	}
+
+	m, err := readJSON(p.pluginClientConfTplPathToUpdateFrom())
 	if err != nil {
 		return err
 	}
-	return setLogPathAndCopy(p, p.pluginClientConfTplPathToUpdateFrom(), p.pluginClientConfigPathToUpdateFrom())
+
+	setLogPath(p, m)
+
+	m["ConfigureProxyScript"] = p.configureProxyScript()
+
+	return saveToFile(m, p.pluginClientConfigPathToUpdateFrom())
 }
 
 func removeDaemons(p *ProxyInstallation) error {

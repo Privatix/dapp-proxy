@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	installationFilename = "installation.json"
+	installationFilename = ".env.config.json"
 )
 
 type prodDirPath struct {
@@ -30,13 +30,13 @@ type prodDirPath struct {
 
 // ProxyInstallation is proxy product installation details.
 type ProxyInstallation struct {
-	IsAgent             bool
-	ProdDir             string
-	ProdDirToUpdateFrom string
-	V2RayDaemonName     string
-	V2RayDaemonDesc     string
-	PluginDaemonName    string
-	PluginDaemonDesc    string
+	IsAgent          bool
+	ProdDir          string
+	ProdDirToUpdate  string
+	V2RayDaemonName  string
+	V2RayDaemonDesc  string
+	PluginDaemonName string
+	PluginDaemonDesc string
 
 	Path prodDirPath
 }
@@ -92,7 +92,7 @@ func (p *ProxyInstallation) setProdDir(dir string) error {
 }
 
 func (p *ProxyInstallation) saveAsFile() error {
-	f, err := os.Create(filepath.Join(p.ProdDir, "data", installationFilename))
+	f, err := os.Create(filepath.Join(p.ProdDir, "config", installationFilename))
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (p *ProxyInstallation) saveAsFile() error {
 }
 
 func (p *ProxyInstallation) readInstallationDetails() error {
-	return util.ReadJSONFile(filepath.Join(p.ProdDir, "data", installationFilename), p)
+	return util.ReadJSONFile(filepath.Join(p.ProdDir, "config", installationFilename), p)
 }
 
 func (p *ProxyInstallation) role() string {
@@ -123,8 +123,8 @@ func (p *ProxyInstallation) prodPathJoin(f string) string {
 	return filepath.Join(p.ProdDir, f)
 }
 
-func (p *ProxyInstallation) prodPathToUpdateFromJoin(f string) string {
-	return filepath.Join(p.ProdDirToUpdateFrom, f)
+func (p *ProxyInstallation) prodPathToUpdateJoin(f string) string {
+	return filepath.Join(p.ProdDirToUpdate, f)
 }
 
 func (p *ProxyInstallation) v2rayExecPath() string {
@@ -153,32 +153,32 @@ func (p *ProxyInstallation) pluginClientConfTplPath() string {
 	return p.prodPathJoin(p.Path.PluginClientConfTpl)
 }
 
-func (p *ProxyInstallation) pluginClientConfTplPathToUpdateFrom() string {
-	return p.prodPathToUpdateFromJoin(p.Path.PluginClientConfTpl)
+func (p *ProxyInstallation) pluginClientConfTplPathToUpdate() string {
+	return p.prodPathToUpdateJoin(p.Path.PluginClientConfTpl)
 }
 
 func (p *ProxyInstallation) pluginAgentConfigTplPath() string {
 	return p.prodPathJoin(p.Path.PluginAgentConfTpl)
 }
 
-func (p *ProxyInstallation) pluginAgentConfigTplPathToUpdateFrom() string {
-	return p.prodPathToUpdateFromJoin(p.Path.PluginAgentConfTpl)
+func (p *ProxyInstallation) pluginAgentConfigTplPathToUpdate() string {
+	return p.prodPathToUpdateJoin(p.Path.PluginAgentConfTpl)
 }
 
 func (p *ProxyInstallation) pluginAgentConfigPath() string {
 	return p.prodPathJoin(p.Path.PluginAgentConf)
 }
 
-func (p *ProxyInstallation) pluginAgentConfigPathToUpdateFrom() string {
-	return p.prodPathToUpdateFromJoin(p.Path.PluginAgentConf)
+func (p *ProxyInstallation) pluginAgentConfigPathToUpdate() string {
+	return p.prodPathToUpdateJoin(p.Path.PluginAgentConf)
 }
 
 func (p *ProxyInstallation) pluginClientConfigPath() string {
 	return p.prodPathJoin(p.Path.PluginClientConf)
 }
 
-func (p *ProxyInstallation) pluginClientConfigPathToUpdateFrom() string {
-	return p.prodPathToUpdateFromJoin(p.Path.PluginClientConf)
+func (p *ProxyInstallation) pluginClientConfigPathToUpdate() string {
+	return p.prodPathToUpdateJoin(p.Path.PluginClientConf)
 }
 
 func (p *ProxyInstallation) logsDirPath() string {

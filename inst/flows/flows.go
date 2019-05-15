@@ -38,19 +38,12 @@ Use "installer [command] --help" for more information about a command.
       --role    Product role, either 'client' or 'agent'
       --proddir Product install directory
 `
-	helpRemove = `
+	commonHelpNoRole = `
 Usage:
-	installer remove [flags]
+	installer %s [flags]
 Flags:
   --help    Display help information
   --proddir Product install directory
-`
-	helpUpdate = `
-	Usage:
-		installer update [flags]
-	Flags:
-		--help    Display help information
-		--proddir Product install directory
 `
 )
 
@@ -64,9 +57,9 @@ func Install() flow.Flow {
 			newStep("prepare plugin configs", preparePluginConfigs, nil),
 			newStep("create v2ray daemons", createV2RayDaemon, removeV2RayDaemon),
 			newStep("create plugin daemons", createPluginDaemon, removePluginDaemon),
+			newStep("save installation details", saveInstallationDetails, nil),
 			newStep("start v2ray daemons", startV2rayDaemon, stopV2rayDaemon),
 			newStep("start plugin daemons", startPluginDaemon, stopPluginDaemon),
-			newStep("save installation details", saveInstallationDetails, nil),
 		},
 	}
 }
@@ -93,8 +86,8 @@ func Update() flow.Flow {
 		Steps: []flow.Step{
 			newStep("read & proccess flags for update", parseUpdateFlags, nil),
 			newStep("read installation details", readInstallationDetails, nil),
-			newStep("locate product temp dir", locateProductTempDir, nil),
-			newStep("prepare plugin configs in product temp dir", prepareUpdateFromPluginConfigs, nil),
+			newStep("locate product temp dir", locateProductDirToUpdate, nil),
+			newStep("prepare plugin configs in product temp dir", prepareUpdatePluginConfigs, nil),
 			newStep("copy /data files", copyDataDirFiles, nil),
 			newStep("merge configs", copyAndMergeConfigs, nil),
 		},
@@ -104,8 +97,10 @@ func Update() flow.Flow {
 // Start is a proxy plug-in service start flow.
 func Start() flow.Flow {
 	return flow.Flow{
-		Name: "start proxy",
+		Name: "Proxy start",
 		Steps: []flow.Step{
+			newStep("parse start flags", parseStartStopFalgs, nil),
+			newStep("read installation details", readInstallationDetails, nil),
 			newStep("start v2ray daemon", startV2rayDaemon, stopV2rayDaemon),
 			newStep("start plugin daemons", startPluginDaemon, stopPluginDaemon),
 		},
@@ -115,8 +110,10 @@ func Start() flow.Flow {
 // Stop is a proxy plug-in service stop flow.
 func Stop() flow.Flow {
 	return flow.Flow{
-		Name: "",
+		Name: "Proxy stop",
 		Steps: []flow.Step{
+			newStep("parse stop flags", parseStartStopFalgs, nil),
+			newStep("read installation details", readInstallationDetails, nil),
 			newStep("stop v2ray daemon", stopV2rayDaemon, startV2rayDaemon),
 			newStep("stop plugin daemons", stopPluginDaemon, startPluginDaemon),
 		},
@@ -129,6 +126,7 @@ func RunV2Ray() flow.Flow {
 		Name: "Run v2ray",
 		Steps: []flow.Step{
 			newStep("read & proccess flags for v2ray run", parseV2RayRunFlags, nil),
+			newStep("read installation details", readInstallationDetails, nil),
 			newStep("run v2ray", runV2Ray, nil),
 		},
 	}
@@ -140,6 +138,7 @@ func RunPlugin() flow.Flow {
 		Name: "Run proxy plug-in",
 		Steps: []flow.Step{
 			newStep("read & proccess flags for plugin run", parsePluginRunFlags, nil),
+			newStep("read installation details", readInstallationDetails, nil),
 			newStep("run plugin", runPlugin, nil),
 		},
 	}

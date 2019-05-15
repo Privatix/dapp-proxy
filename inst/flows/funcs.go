@@ -82,12 +82,12 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 	return setLogPathAndCopy(p, p.pluginClientConfTplPath(), p.pluginClientConfigPath())
 }
 
-func prepareUpdateFromPluginConfigs(p *ProxyInstallation) error {
-	err := setLogPathAndCopy(p, p.pluginAgentConfigTplPathToUpdateFrom(), p.pluginAgentConfigPathToUpdateFrom())
+func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
+	err := setLogPathAndCopy(p, p.pluginAgentConfigTplPathToUpdate(), p.pluginAgentConfigPathToUpdate())
 	if err != nil {
 		return err
 	}
-	return setLogPathAndCopy(p, p.pluginClientConfTplPathToUpdateFrom(), p.pluginClientConfigPathToUpdateFrom())
+	return setLogPathAndCopy(p, p.pluginClientConfTplPathToUpdate(), p.pluginClientConfigPathToUpdate())
 }
 
 func removeDaemons(p *ProxyInstallation) error {
@@ -248,59 +248,106 @@ func parseProdDirOrHelpFlags(p *ProxyInstallation, helpMsg string) error {
 }
 
 func parseRemoveFlags(p *ProxyInstallation) error {
-	return parseProdDirOrHelpFlags(p, helpRemove)
+	return parseProdDirOrHelpFlags(p, fmt.Sprintf(commonHelpNoRole, MethodRemove))
 }
 
 func parseUpdateFlags(p *ProxyInstallation) error {
-	return parseProdDirOrHelpFlags(p, helpUpdate)
+	return parseProdDirOrHelpFlags(p, fmt.Sprintf(commonHelpNoRole, MethodUpdate))
 }
 
-func locateProductTempDir(p *ProxyInstallation) error {
-	productTempPath := os.Getenv("PRIVATIX_TEMP_PRODUCT")
+func locateProductDirToUpdate(p *ProxyInstallation) error {
+	// HACK: It is known that dapp-installer creates a `role`_new dir
+	// during update. Hardcoding this is burrow for bugs.
+	prodNewLocation := strings.Replace(p.ProdDir, p.role()+"_new", p.role(), 1)
+
 	_, uuidProd := filepath.Split(p.ProdDir)
 
-	if productTempPath == "" {
-		return fmt.Errorf("PRIVATIX_TEMP_PRODUCT is empty")
-	}
+	productTempPath := os.Getenv("PRIVATIX_TEMP_PRODUCT")
 
-	found := ""
+	if productTempPath != "" {
+		// If dapp-installer provided PRIVATIX_TEMP_PRODUCT, search for
+		// dir to update in there.
+		err := filepath.Walk(productTempPath, func(name string, info os.FileInfo, err error) error {
+			if !info.IsDir() {
+				return err
+			}
+			_, dir := filepath.Split(name)
 
-	err := filepath.Walk(productTempPath, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
+			if err == nil && strings.EqualFold(dir, uuidProd) {
+				prodNewLocation = name
+			}
+			return err
+		})
+		if err != nil {
 			return err
 		}
-		_, dir := filepath.Split(path)
-
-		if err == nil && strings.EqualFold(dir, uuidProd) {
-			found = path
-		}
-
-		return err
-	})
-	if err != nil {
-		return err
 	}
 
-	if found == "" {
-		return fmt.Errorf("could not find product dir '%s' at PRIVATIX_TEMP_PRODUCT", uuidProd)
-	}
-
-	p.ProdDirToUpdateFrom = found
+	p.ProdDirToUpdate = prodNewLocation
 
 	return nil
 }
 
 func copyDataDirFiles(p *ProxyInstallation) error {
-	return util.CopyDir(p.prodPathJoin(p.Path.DataDir), p.prodPathToUpdateFromJoin(p.Path.DataDir))
+	return util.CopyDir(p.prodPathToUpdateJoin(p.Path.DataDir), p.prodPathJoin(p.Path.DataDir))
 }
 
 func copyAndMergeConfigs(p *ProxyInstallation) error {
-	// TODO: implement.
+	if err := mergeConfigs(p.pluginAgentConfigPath(), p.pluginAgentConfigPathToUpdate()); err != nil {
+		return err
+	}
+	return mergeConfigs(p.pluginClientConfigPath(), p.pluginClientConfigPathToUpdate())
+}
+
+func mergeConfigs(from, to string) error {
+	fromMap, err := readJSON(from)
+	if err != nil {
+		return err
+	}
+	toMap, err := readJSON(to)
+	if err != nil {
+		return err
+	}
+
+	return copyMissedKeys(fromMap, toMap)
+}
+
+func readJSON(file string) (map[string]interface{}, error) {
+	f, err := os.Open(file)
+	defer f.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[string]interface{})
+	return m, json.NewDecoder(f).Decode(&m)
+}
+
+// copyMissedKeys copies missed keys that exist in `from` map to `to` map.
+func copyMissedKeys(from map[string]interface{}, to map[string]interface{}) error {
+	for k, v := range from {
+		// If value is absent in `to` then copy as is.
+		if _, ok := to[k]; !ok {
+			to[k] = v
+			continue
+		}
+		// If value is a map, then apply recursion.
+		if vMap, ok := v.(map[string]interface{}); ok {
+			if err := copyMissedKeys(vMap, to[k].(map[string]interface{})); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
 func parseV2RayRunFlags(p *ProxyInstallation) error {
 	return parseCommonFlags(p, MethodRunV2Ray)
+}
+
+func parseStartStopFalgs(p *ProxyInstallation) error {
+	return parseProdDirOrHelpFlags(p, fmt.Sprintf(commonHelpNoRole, MethodRemove))
 }
 
 func runV2Ray(p *ProxyInstallation) error {

@@ -51,3 +51,14 @@ func (c *UsageGetter) GetUsage(ctx context.Context) (uint64, error) {
 	}
 	return usage, nil
 }
+
+// RequestReset requests counter reset.
+func (c *UsageGetter) RequestReset(ctx context.Context) error {
+	for _, name := range c.queryNames {
+		_, err := c.stats.GetStats(ctx, &command.GetStatsRequest{Name: name, Reset_: true})
+		if err != nil {
+			return fmt.Errorf("could not reset counter: %v", err)
+		}
+	}
+	return nil
+}

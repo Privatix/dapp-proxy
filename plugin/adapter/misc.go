@@ -19,9 +19,9 @@ import (
 func must(msg string, err error) {
 	if err != nil {
 		if msg != "" {
-			panic(msg + ": " + err.Error())
+			adapterLogger.Fatal(msg + ": " + err.Error())
 		}
-		panic(err)
+		adapterLogger.Fatal(err.Error())
 	}
 }
 

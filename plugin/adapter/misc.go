@@ -17,11 +17,17 @@ import (
 )
 
 func must(msg string, err error) {
+	fatal := func(s string) {
+		panic(s)
+	}
+	if adapterLogger != nil {
+		fatal = adapterLogger.Fatal
+	}
 	if err != nil {
 		if msg != "" {
-			adapterLogger.Fatal(msg + ": " + err.Error())
+			fatal(msg + ": " + err.Error())
 		}
-		adapterLogger.Fatal(err.Error())
+		fatal(err.Error())
 	}
 }
 

@@ -1,5 +1,6 @@
 statik/statik.go
 \.idea/
+.vscode
 
 *.iml
 

@@ -1,7 +1,7 @@
 module github.com/privatix/dapp-proxy
 
 require (
-	github.com/privatix/dapp-installer v0.0.0-20190418125010-53b2f8d15147
+	github.com/privatix/dapp-installer v0.0.0-20190516075634-1e3d3f9291d2
 	github.com/privatix/dappctrl v0.0.0-20190424091356-90433d5df03a
 	github.com/rakyll/statik v0.1.6
 	github.com/rdegges/go-ipify v0.0.0-20150526035502-2d94a6a86c40

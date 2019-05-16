@@ -3,8 +3,8 @@
 MY_PATH="`dirname \"$0\"`" # relative bash file path
 DAPP_PROXY_DIR="`( cd \"$MY_PATH/..\" && pwd )`"  # absolutized and normalized dapp-proxy path
 
-GIT_COMMIT=$(git rev-list -1 HEAD)
-GIT_RELEASE=$(git tag -l --points-at HEAD)
+GIT_COMMIT=$(git rev-list -1 HEAD | head -n 1)
+GIT_RELEASE=$(git tag -l --points-at HEAD | head -n 1)
 
 # if $GIT_RELEASE is zero:
 GIT_RELEASE=${GIT_RELEASE:-$(git rev-parse --abbrev-ref HEAD | grep -o "[0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}")}

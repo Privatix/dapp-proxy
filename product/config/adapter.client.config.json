@@ -1,5 +1,5 @@
 {
-    "ConfigureProxyScript": "/Users/furkhat/projects/dapp-proxy/product/data/scripts/configuresocksfirewallproxy.sh",
+    "ConfigureProxyScript": "",
     "FileLog": {
         "Level": "debug",
         "StackLevel": "error",
@@ -12,7 +12,7 @@
         "API": "127.0.0.1:10081",
         "InboundTag": "socks-inbound"
     },
-    "ProxyPort": 1080,
+    "ProxyPort": 1080, 
     "Sess": {
         "Endpoint": "ws://localhost:8000/ws",
         "Origin": "",

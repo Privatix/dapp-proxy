@@ -1,4 +1,5 @@
 {
+    "ConfigureProxyScript": "",
     "FileLog": {
         "Level": "debug",
         "StackLevel": "error",
@@ -11,13 +12,13 @@
         "API": "127.0.0.1:10081",
         "InboundTag": "socks-inbound"
     },
+    "ProxyPort": 1080, 
     "Sess": {
         "Endpoint": "ws://localhost:8000/ws",
         "Origin": "",
         "Product": "33f14778-1413-4dc9-abe8-de0c62e3af12",
         "Password": "JnEf0314x98K"
     },
-    "ConfigureProxyScript": "",
     "Monitor": {
         "CountPeriod": 5
     }

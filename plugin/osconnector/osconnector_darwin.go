@@ -2,6 +2,7 @@ package osconnector
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 )
@@ -26,6 +27,10 @@ func ConfigureWithScript(script, host string, port int) error {
 // RollbackWithScript uses scrupt to rollback proxy configuration.
 func RollbackWithScript(script string) error {
 	chsf := changedServicesFileNamePath(script)
+
+	if _, err := os.Stat(chsf); os.IsNotExist(err) {
+		return ErrRollbackNotNeeded
+	}
 
 	cmd := exec.Command("/bin/sh", script, "off", chsf)
 	return cmd.Run()

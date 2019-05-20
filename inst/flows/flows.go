@@ -73,6 +73,7 @@ func Remove() flow.Flow {
 			newStep("read installation details", readInstallationDetails, nil),
 			newStep("stop plugin daemon", stopPluginDaemon, startPluginDaemon),
 			newStep("stop v2ray daemon", stopV2rayDaemon, startV2rayDaemon),
+			newStep("stop using active proxy if any", removeOSProxyConfigurationIfAny, nil),
 			newStep("remove v2ray daemon", removeV2RayDaemon, createV2RayDaemon),
 			newStep("remove plugin daemon", removePluginDaemon, createPluginDaemon),
 		},

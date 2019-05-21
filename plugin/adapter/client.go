@@ -5,15 +5,13 @@ import (
 
 	"github.com/privatix/dapp-proxy/plugin/monitor"
 	"github.com/privatix/dapp-proxy/plugin/osconnector"
-	"github.com/privatix/dapp-proxy/plugin/v2ray-client"
+	v2rayclient "github.com/privatix/dapp-proxy/plugin/v2ray-client"
 	"github.com/privatix/dappctrl/data"
 	"github.com/privatix/dappctrl/sess"
 )
 
 // AsClient runs adapter in client mode.
 func AsClient(conf *Config) {
-	onConnCreate := func(_ *data.Endpoint, _ *sess.ConnChangeResult) {}
-
 	onConnStart := func(endpoint *data.Endpoint, change *sess.ConnChangeResult) {
 		var err error
 		adapterLogger.Info("configuring proxy to connect")
@@ -55,5 +53,5 @@ func AsClient(conf *Config) {
 		adapterMon.Stop(change.Channel)
 	}
 
-	runAdapter(conf, func() {}, onConnCreate, onConnStart, onConnStop)
+	runAdapter(conf, func() {}, onConnStart, onConnStop)
 }

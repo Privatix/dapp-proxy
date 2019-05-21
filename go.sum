@@ -98,6 +98,8 @@ github.com/privatix/dappctrl v0.0.0-20190402145318-c4e4ba7395f9 h1:gP2lyo1ttP7wn
 github.com/privatix/dappctrl v0.0.0-20190402145318-c4e4ba7395f9/go.mod h1:WSJxnCObSRXHmyIg5Ju7S2MA1AB8FAgNU9xM/9J4ZL4=
 github.com/privatix/dappctrl v0.0.0-20190516100504-b062bbf74f76 h1:eVElTIX/C/9JSoozy3AQMaOb5UKmndGg+vf9fgUzfFk=
 github.com/privatix/dappctrl v0.0.0-20190516100504-b062bbf74f76/go.mod h1:L4KrKk1i2NgdWYyqMJqGIOBuVDUMrmwrQxLzoHDqtgk=
+github.com/privatix/dappctrl v0.0.0-20190521070712-81b1bbacb8d3 h1:FNRhj4YHHX9LDDKyzEBuojdXXN5ouEDkMwR0mI7X2TI=
+github.com/privatix/dappctrl v0.0.0-20190521070712-81b1bbacb8d3/go.mod h1:L4KrKk1i2NgdWYyqMJqGIOBuVDUMrmwrQxLzoHDqtgk=
 github.com/privatix/dappctrl v0.21.1 h1:LloJxlxt4SSV5H8D8HOVwGJMB5C2G1bp8bowpqURKbA=
 github.com/privatix/dappctrl v0.21.1/go.mod h1:My3ax8gOgQirBoTaJqMN+BahTfLMl5qxYW78bPOivtc=
 github.com/rakyll/statik v0.1.6 h1:uICcfUXpgqtw2VopbIncslhAmE5hwc4g20TEyEENBNs=

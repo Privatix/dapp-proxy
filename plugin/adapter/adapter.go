@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/privatix/dapp-proxy/plugin/monitor"
-	"github.com/privatix/dapp-proxy/plugin/v2ray-client"
+	v2rayclient "github.com/privatix/dapp-proxy/plugin/v2ray-client"
 	"github.com/privatix/dappctrl/data"
 	"github.com/privatix/dappctrl/sess"
 	"github.com/privatix/dappctrl/util/log"
@@ -44,7 +44,7 @@ func handleReports() {
 	}
 }
 
-func runAdapter(conf *Config, beforeStart func(), onConnCreate, onConnStart, onConnStop func(*data.Endpoint, *sess.ConnChangeResult)) {
+func runAdapter(conf *Config, beforeStart func(), onConnStart, onConnStop func(*data.Endpoint, *sess.ConnChangeResult)) {
 	adapterSessClient = newProductSessClient(conf.Sess)
 
 	adapterV2RayConn = newV2RayAPIConn(conf.V2Ray.API)
@@ -85,8 +85,6 @@ func runAdapter(conf *Config, beforeStart func(), onConnCreate, onConnStart, onC
 		}
 
 		switch change.Status {
-		case sess.ConnCreate:
-			onConnCreate(endpoint, change)
 		case sess.ConnStart:
 			onConnStart(endpoint, change)
 		case sess.ConnStop:

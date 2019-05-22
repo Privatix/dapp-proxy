@@ -1,5 +1,6 @@
 {
-    "ConfigureProxyScript": "",
+    "ConfigureProxyScript": "/Users/furkhat/projects/dapp-proxy/product/data/scripts/configuresocksfirewallproxy.sh",
+    "ChannelDir": "/Users/furkhat/projects/dapp-proxy/product/data",
     "FileLog": {
         "Level": "debug",
         "StackLevel": "error",

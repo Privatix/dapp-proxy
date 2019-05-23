@@ -36,7 +36,7 @@ func handleReports() {
 				logger.Fatal(err.Error())
 			}
 		} else {
-			err := adapterSessClient.UpdateSession(report.Channel, report.Usage, report.Last)
+			err := adapterSessClient.UpdateSession(report.Channel, report.Usage)
 			if err != nil {
 				logger.Error(err.Error())
 			}
@@ -62,6 +62,17 @@ func runAdapter(conf *Config, beforeStart func(), onConnStart, onConnStop func(*
 
 	adapterMon = newMonitor(conf.Monitor)
 
+	channelStorage := newActiveChannelStorage(conf.ChannelDir)
+
+	if ch, err := channelStorage.load(); err != nil {
+		adapterLogger.Fatal(err.Error())
+	} else if ch != "" {
+		err := adapterSessClient.StopSession(ch)
+		if err != nil {
+			adapterLogger.Fatal(err.Error())
+		}
+	}
+
 	beforeStart()
 
 	go handleReports()
@@ -86,9 +97,15 @@ func runAdapter(conf *Config, beforeStart func(), onConnStart, onConnStop func(*
 
 		switch change.Status {
 		case sess.ConnStart:
+			if err := channelStorage.store(change.Channel); err != nil {
+				logger.Fatal(err.Error())
+			}
 			onConnStart(endpoint, change)
 		case sess.ConnStop:
 			onConnStop(endpoint, change)
+			if err := channelStorage.remove(); err != nil {
+				logger.Fatal(err.Error())
+			}
 		}
 	}
 }

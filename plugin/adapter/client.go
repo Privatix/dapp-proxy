@@ -48,6 +48,8 @@ func AsClient(conf *Config) {
 		adapterLogger.Info("configuring operating system to stop using proxy")
 		err = osconnector.RollbackWithScript(conf.ConfigureProxyScript)
 		must("could not configure operating system to stop using proxy", err)
+		adapterSessClient.StopSession(change.Channel)
+		must("failed to stop session", err)
 
 		// TODO: Stop reading v2ray logs for this connection.
 		adapterMon.Stop(change.Channel)

@@ -35,8 +35,6 @@ func handleReports() {
 			if err != nil {
 				logger.Fatal(err.Error())
 			}
-		} else if report.Last {
-			adapterSessClient.StopSession(report.Channel)
 		} else {
 			err := adapterSessClient.UpdateSession(report.Channel, report.Usage)
 			if err != nil {

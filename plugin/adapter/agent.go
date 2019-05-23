@@ -68,6 +68,8 @@ func AsAgent(conf *Config, workdir string) {
 		adapterLogger.Info("configuring proxy to close connections")
 		err := adapterUsersClient.RemoveUser(context.Background(), *endpoint.Username)
 		must("", err)
+		adapterSessClient.StopSession(change.Channel)
+		must("failed to stop session", err)
 		adapterMon.Stop(change.Channel)
 	}
 

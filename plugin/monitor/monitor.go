@@ -18,7 +18,6 @@ type Report struct {
 	Channel string
 	Usage   uint64
 	First   bool
-	Last    bool
 }
 
 // Monitor counts and reports traffic usage.
@@ -64,10 +63,12 @@ func (m *Monitor) Start(channel string, getter UsageGetter) {
 		for {
 			select {
 			case <-ticker.C:
-				m.reportUsage(channel, first, false)
+				m.reportUsage(channel, first)
 				first = false
 			case <-ctx.Done():
-				m.reportUsage(channel, false, true)
+				m.mu.Lock()
+				delete(m.usages, channel)
+				m.mu.Unlock()
 				return
 			}
 		}
@@ -91,7 +92,7 @@ func (m *Monitor) Stop(channel string) {
 	delete(m.cancel, channel)
 }
 
-func (m *Monitor) reportUsage(channel string, f, l bool) {
+func (m *Monitor) reportUsage(channel string, first bool) {
 	logger := m.logger.Add()
 
 	logger.Debug("reporting usage")
@@ -101,16 +102,9 @@ func (m *Monitor) reportUsage(channel string, f, l bool) {
 		logger.Error(err.Error())
 	}
 
-	if l {
-		m.mu.Lock()
-		delete(m.usages, channel)
-		m.mu.Unlock()
-	}
-
 	m.Reports <- &Report{
 		Channel: channel,
 		Usage:   usage,
-		First:   f,
-		Last:    l,
+		First:   first,
 	}
 }

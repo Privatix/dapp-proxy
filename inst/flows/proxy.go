@@ -184,3 +184,7 @@ func (p *ProxyInstallation) pluginClientConfigPathToUpdate() string {
 func (p *ProxyInstallation) logsDirPath() string {
 	return p.prodPathJoin("log")
 }
+
+func (p *ProxyInstallation) dataDirPath() string {
+	return p.prodPathJoin("data")
+}

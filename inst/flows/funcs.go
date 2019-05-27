@@ -54,6 +54,10 @@ func setLogPath(p *ProxyInstallation, m map[string]interface{}) {
 	m["FileLog"] = newflog
 }
 
+func setChannelDir(p *ProxyInstallation, m map[string]interface{}) {
+	m["ChannelDir"] = p.dataDirPath()
+}
+
 func saveToFile(m map[string]interface{}, dest string) error {
 	f, err := os.Create(dest)
 	if err != nil {
@@ -73,6 +77,8 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 
 		setLogPath(p, m)
 
+		setChannelDir(p, m)
+
 		return saveToFile(m, p.pluginAgentConfigPath())
 	}
 
@@ -82,6 +88,8 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 	}
 
 	setLogPath(p, m)
+
+	setChannelDir(p, m)
 
 	m["ConfigureProxyScript"] = p.configureProxyScript()
 
@@ -97,6 +105,8 @@ func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
 
 		setLogPath(p, m)
 
+		setChannelDir(p, m)
+
 		return saveToFile(m, p.pluginAgentConfigPathToUpdate())
 	}
 
@@ -106,6 +116,8 @@ func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
 	}
 
 	setLogPath(p, m)
+
+	setChannelDir(p, m)
 
 	m["ConfigureProxyScript"] = p.configureProxyScript()
 

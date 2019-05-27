@@ -91,8 +91,9 @@ github.com/privatix/dapp-installer v0.21.1 h1:i2sbtsgzjdthUDSs6zFxkXv1a3SIys0NKu
 github.com/privatix/dapp-installer v0.21.1/go.mod h1:ynVIaIe7X2BoA1v2WsWV0Tu1E5Vty8qPfoPKTzGjVkE=
 github.com/privatix/dapp-proxy v0.0.0-20190326111017-4c82057212c5 h1:wVvR1EnIgG9OLOSWoNG6dTEM3txzuk7qVSYz4nKum+Q=
 github.com/privatix/dapp-proxy v0.0.0-20190326111017-4c82057212c5/go.mod h1:1fFfKOHMLcUem9KXTpU8GsK5byWesyR+P16nO6JFp3w=
-github.com/privatix/dappctrl v0.0.0-20190523082556-29f86db5baab h1:gmrZXxvdBILKuLrr6CALycdMOuKFdaadw++SqaeKd/Q=
-github.com/privatix/dappctrl v0.0.0-20190523082556-29f86db5baab/go.mod h1:L4KrKk1i2NgdWYyqMJqGIOBuVDUMrmwrQxLzoHDqtgk=
+github.com/privatix/dappctrl v0.0.0-20190401100954-71b55abbd235/go.mod h1:WSJxnCObSRXHmyIg5Ju7S2MA1AB8FAgNU9xM/9J4ZL4=
+github.com/privatix/dappctrl v0.0.0-20190527061908-d0151fd8098a h1:+PiUfWVKkTD5tkALq+X3Em9hDpCzyA479fR4+53erXo=
+github.com/privatix/dappctrl v0.0.0-20190527061908-d0151fd8098a/go.mod h1:L4KrKk1i2NgdWYyqMJqGIOBuVDUMrmwrQxLzoHDqtgk=
 github.com/rakyll/statik v0.1.6 h1:uICcfUXpgqtw2VopbIncslhAmE5hwc4g20TEyEENBNs=
 github.com/rakyll/statik v0.1.6/go.mod h1:OEi9wJV/fMUAGx1eNjq75DKDsJVuEv1U0oYdX6GX8Zs=
 github.com/rdegges/go-ipify v0.0.0-20150526035502-2d94a6a86c40 h1:31Y7UZ1yTYBU4E79CE52I/1IRi3TqiuwquXGNtZDXWs=

@@ -37,7 +37,7 @@ func TestMonitor(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("usage was not reported: timeout")
 	case v := <-mon.Reports:
-		if v.Channel != "bar" || v.Usage != 100 || !v.First || v.Last {
+		if v.Channel != "bar" || v.Usage != 100 || !v.First {
 			t.Fatalf("unexpected usage reported: %+v", v)
 		}
 	}
@@ -46,19 +46,8 @@ func TestMonitor(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("usage was not reported: timeout")
 	case v := <-mon.Reports:
-		if v.Channel != "bar" || v.Usage != 100 || v.First || v.Last {
+		if v.Channel != "bar" || v.Usage != 100 || v.First {
 			t.Fatalf("unexpected usage reported: %+v", v)
 		}
 	}
-
-	mon.Stop("bar")
-
-	works := false
-	for v := range mon.Reports {
-		works = v.Channel == "bar" && v.Usage == 100 && !v.First && v.Last
-		if works {
-			return
-		}
-	}
-	t.Fatal("last report was not sent")
 }

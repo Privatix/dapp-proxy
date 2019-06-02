@@ -11,6 +11,7 @@ import (
 	"github.com/takama/daemon"
 
 	"github.com/privatix/dapp-installer/util"
+	"github.com/privatix/dapp-proxy/plugin/adapter"
 )
 
 const (
@@ -42,86 +43,82 @@ func parseInstallFlags(p *ProxyInstallation) error {
 }
 
 func validateInstallEnvironment(p *ProxyInstallation) error {
-	// TODO: Check there is not active installation.
-	return nil
+	_, err := os.Stat(p.installationFile())
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return fmt.Errorf("already installed")
 }
 
-func setLogPath(p *ProxyInstallation, m map[string]interface{}) {
-	newflog := m["FileLog"].(map[string]interface{})
-
-	newflog["Filename"] = filepath.Join(p.logsDirPath(), "dappproxy-%Y-%m-%d.log")
-
-	m["FileLog"] = newflog
+func setLogPath(p *ProxyInstallation, config *adapter.Config) {
+	config.FileLog.Filename = filepath.Join(p.logsDirPath(), "dappproxy-%Y-%m-%d.log")
 }
 
-func setChannelDir(p *ProxyInstallation, m map[string]interface{}) {
-	m["ChannelDir"] = p.dataDirPath()
+func setChannelDir(p *ProxyInstallation, v *adapter.Config) {
+	v.ChannelDir = p.dataDirPath()
 }
 
-func saveToFile(m map[string]interface{}, dest string) error {
+func saveJSON(v interface{}, dest string) error {
 	f, err := os.Create(dest)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
-	return json.NewEncoder(f).Encode(m)
+	return json.NewEncoder(f).Encode(v)
 }
 
 func preparePluginConfigs(p *ProxyInstallation) error {
-	if p.IsAgent {
-		m, err := readJSON(p.pluginAgentConfigTplPath())
-		if err != nil {
-			return err
-		}
-
-		setLogPath(p, m)
-
-		setChannelDir(p, m)
-
-		return saveToFile(m, p.pluginAgentConfigPath())
-	}
-
-	m, err := readJSON(p.pluginClientConfTplPath())
-	if err != nil {
+	config := new(adapter.Config)
+	if err := readJSON(p.pluginAgentConfigTplPath(), config); err != nil {
 		return err
 	}
 
-	setLogPath(p, m)
+	setLogPath(p, config)
 
-	setChannelDir(p, m)
+	setChannelDir(p, config)
 
-	m["ConfigureProxyScript"] = p.configureProxyScript()
+	if err := saveJSON(config, p.pluginAgentConfigPath()); err != nil {
+		return err
+	}
 
-	return saveToFile(m, p.pluginClientConfigPath())
+	if err := readJSON(p.pluginClientConfTplPath(), config); err != nil {
+		return err
+	}
+
+	setLogPath(p, config)
+
+	setChannelDir(p, config)
+
+	config.ConfigureProxyScript = p.configureProxyScript()
+
+	return saveJSON(config, p.pluginClientConfigPath())
 }
 
 func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
+	config := new(adapter.Config)
 	if p.IsAgent {
-		m, err := readJSON(p.pluginAgentConfigTplPathToUpdate())
-		if err != nil {
+		if err := readJSON(p.pluginAgentConfigTplPathToUpdate(), config); err != nil {
 			return err
 		}
 
-		setLogPath(p, m)
+		setLogPath(p, config)
 
-		setChannelDir(p, m)
+		setChannelDir(p, config)
 
-		return saveToFile(m, p.pluginAgentConfigPathToUpdate())
+		return saveJSON(config, p.pluginAgentConfigPathToUpdate())
 	}
 
-	m, err := readJSON(p.pluginClientConfTplPathToUpdate())
-	if err != nil {
+	if err := readJSON(p.pluginClientConfTplPathToUpdate(), config); err != nil {
 		return err
 	}
 
-	setLogPath(p, m)
+	setLogPath(p, config)
 
-	setChannelDir(p, m)
+	setChannelDir(p, config)
 
-	m["ConfigureProxyScript"] = p.configureProxyScript()
+	config.ConfigureProxyScript = p.configureProxyScript()
 
-	return saveToFile(m, p.pluginClientConfigPathToUpdate())
+	return saveJSON(config, p.pluginClientConfigPathToUpdate())
 }
 
 func removeDaemons(p *ProxyInstallation) error {
@@ -334,27 +331,25 @@ func copyAndMergeConfigs(p *ProxyInstallation) error {
 }
 
 func mergeConfigs(from, to string) error {
-	fromMap, err := readJSON(from)
-	if err != nil {
+	var mapFrom, mapTo map[string]interface{}
+	if err := readJSON(from, mapFrom); err != nil {
 		return err
 	}
-	toMap, err := readJSON(to)
-	if err != nil {
+	if err := readJSON(to, mapTo); err != nil {
 		return err
 	}
 
-	return copyMissedKeys(fromMap, toMap)
+	return copyMissedKeys(mapFrom, mapTo)
 }
 
-func readJSON(file string) (map[string]interface{}, error) {
+func readJSON(file string, out interface{}) error {
 	f, err := os.Open(file)
 	defer f.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	m := make(map[string]interface{})
-	return m, json.NewDecoder(f).Decode(&m)
+	return json.NewDecoder(f).Decode(&out)
 }
 
 // copyMissedKeys copies missed keys that exist in `from` map to `to` map.

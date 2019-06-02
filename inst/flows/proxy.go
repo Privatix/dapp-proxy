@@ -12,10 +12,6 @@ import (
 	installerutil "github.com/privatix/dapp-installer/util"
 )
 
-const (
-	installationFilename = ".env.config.json"
-)
-
 type prodDirPath struct {
 	DataDir             string
 	V2RayAgentConfig    string
@@ -26,6 +22,8 @@ type prodDirPath struct {
 	PluginClientConf    string
 	PluginAgentConfTpl  string
 	PluginClientConfTpl string
+	OSXFirewallScript   string
+	OSXFirewallRuleFile string
 }
 
 // ProxyInstallation is proxy product installation details.
@@ -54,6 +52,8 @@ func NewProxyInstallation() *ProxyInstallation {
 			PluginClientConf:    "config/adapter.client.config.json",
 			PluginAgentConfTpl:  "template/adapter.agent.config.json",
 			PluginClientConfTpl: "template/adapter.client.config.json",
+			OSXFirewallScript:   "data/scripts/mac/pf-rule.sh",
+			OSXFirewallRuleFile: "data/dapp-proxy.firewall.rule",
 		},
 	}
 }
@@ -92,7 +92,7 @@ func (p *ProxyInstallation) setProdDir(dir string) error {
 }
 
 func (p *ProxyInstallation) saveAsFile() error {
-	f, err := os.Create(filepath.Join(p.ProdDir, "config", installationFilename))
+	f, err := os.Create(p.installationFile())
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,11 @@ func (p *ProxyInstallation) saveAsFile() error {
 }
 
 func (p *ProxyInstallation) readInstallationDetails() error {
-	return util.ReadJSONFile(filepath.Join(p.ProdDir, "config", installationFilename), p)
+	return util.ReadJSONFile(p.installationFile(), p)
+}
+
+func (p *ProxyInstallation) installationFile() string {
+	return filepath.Join(p.ProdDir, "config/.env.config.json")
 }
 
 func (p *ProxyInstallation) role() string {
@@ -187,4 +191,12 @@ func (p *ProxyInstallation) logsDirPath() string {
 
 func (p *ProxyInstallation) dataDirPath() string {
 	return p.prodPathJoin("data")
+}
+
+func (p *ProxyInstallation) osxFilrewallScript() string {
+	return p.prodPathJoin(p.Path.OSXFirewallScript)
+}
+
+func (p *ProxyInstallation) osxFirewallRuleFile() string {
+	return p.prodPathJoin(p.Path.OSXFirewallRuleFile)
 }

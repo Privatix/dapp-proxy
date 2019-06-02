@@ -20,7 +20,7 @@ func newActiveChannelStorage(path string) *activeChannelStorage {
 func (s *activeChannelStorage) store(ch string) error {
 	err := ioutil.WriteFile(s.filename, []byte(ch), perm)
 	if err != nil {
-		return fmt.Errorf("failed to write channel file: %v", err)
+		return fmt.Errorf("could not write channel file: %v", err)
 	}
 	return nil
 }
@@ -31,7 +31,7 @@ func (s *activeChannelStorage) load() (string, error) {
 		if os.IsNotExist(err) {
 			return "", nil
 		}
-		return "", fmt.Errorf("failed to read channel file: %v", err)
+		return "", fmt.Errorf("could not read channel file: %v", err)
 	}
 
 	return string(data), nil
@@ -40,7 +40,7 @@ func (s *activeChannelStorage) load() (string, error) {
 func (s *activeChannelStorage) remove() error {
 	err := os.Remove(s.filename)
 	if err != nil {
-		return fmt.Errorf("failed to remove channel file: %v", err)
+		return fmt.Errorf("could not remove channel file: %v", err)
 	}
 	return nil
 }

@@ -59,7 +59,7 @@ func Install() flow.Flow {
 			newStep("prepare plugin configs", preparePluginConfigs, nil),
 			newStep("create v2ray daemons", createV2RayDaemon, removeV2RayDaemon),
 			newStep("create plugin daemons", createPluginDaemon, removePluginDaemon),
-			newStep("configure operating system's firewall", configureOSFirewall, rollbackOSConfiguration),
+			newStep("configure operating system's firewall", configureOSFirewall, rollbackOSFirewallConfiguration),
 			newStep("save installation details", saveInstallationDetails, nil),
 			newStep("start v2ray daemons", startV2rayDaemon, stopV2rayDaemon),
 			newStep("start plugin daemons", startPluginDaemon, stopPluginDaemon),

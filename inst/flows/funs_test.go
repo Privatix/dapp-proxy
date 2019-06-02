@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -15,11 +17,14 @@ import (
 
 func TestInstallFuncs(t *testing.T) {
 	t.Run("ValidateInstallEnvironment", func(t *testing.T) {
-		dir := createTempDirOrFail(t)
-		defer os.RemoveAll(dir)
+		proddir := createTempDirOrFail(t)
+		defer os.RemoveAll(proddir)
 
 		p := NewProxyInstallation()
-		p.init(dir, "agent")
+		p.init(proddir, "agent")
+
+		// Copy source dir.
+		copyDirOrFail(t, os.Getenv("SOURCE_DIR"), proddir)
 
 		t.Run("OK", func(t *testing.T) {
 			// No ".env.config.json" file is present means ok.
@@ -29,8 +34,7 @@ func TestInstallFuncs(t *testing.T) {
 		})
 
 		t.Run("Error", func(t *testing.T) {
-			createSubdirOrFail(t, dir, "config")
-			createFileOrFail(t, dir, "config/.env.config.json")
+			createFileOrFail(t, proddir, "config/.env.config.json")
 			// ".env.config.json" file is created, validation must fail.
 			if err := validateInstallEnvironment(p); err == nil {
 				t.Fatalf("validateInstallEnvironment() did not validate")
@@ -38,15 +42,43 @@ func TestInstallFuncs(t *testing.T) {
 		})
 	})
 
-	t.Run("InstallStepsInOrder", func(t *testing.T) {
-		// Test installation funcs in flow order.
-		// Some funcs are excluded in tests due to mocking complexity and/or logic simplicity.
+	t.Run("SaveInstallationDetails", func(t *testing.T) {
+		proddir := createTempDirOrFail(t)
+		defer os.RemoveAll(proddir)
+
+		p := NewProxyInstallation()
+		p.init(proddir, "agent")
+
+		// Copy source dir.
+		copyDirOrFail(t, os.Getenv("SOURCE_DIR"), proddir)
+
+		if err := saveInstallationDetails(p); err != nil {
+			t.Fatalf("saveInstallationDetails returned error: %v", err)
+		}
+
+		var p2 ProxyInstallation
+		readJSONORFail(t, filepath.Join(proddir, "config/.env.config.json"), &p2)
+
+		if !reflect.DeepEqual(*p, p2) {
+			t.Fatalf("stored %+v, want %+v", p2, *p)
+		}
+	})
+
+	t.Run("InstallStepsInOrderOSX", func(t *testing.T) {
+		if runtime.GOOS != "darwin" {
+			t.Skip("NOT OSX")
+		}
+		// Test statefull and dependent installation funcs in flow order for OSX.
 		// Testing funcs:
 		//    (ignored) parseInstallFlags
+		//    (ignored) validateInstallEnvironment
 		// 1. preparePluginConfigs
 		//    (ignored) createV2RayDaemon
 		//    (ignored) createPluginDaemon
-		// 2. configureOSFirewall
+		// 2. configureOSXFirewall
+		//    (ignored) saveInstallationDetails
+		//    (ignored) startV2rayDaemon
+		//    (ignored) startPluginDaemon
 		proddir := createTempDirOrFail(t)
 		defer os.RemoveAll(proddir)
 
@@ -62,7 +94,7 @@ func TestInstallFuncs(t *testing.T) {
 		// Test all funcs in order.
 
 		testPreparePluginConfigs(t, p)
-		testConfigureOSFirewall(t, p)
+		testConfigureOSXFirewall(t, p)
 	})
 }
 
@@ -96,7 +128,7 @@ func testPreparePluginConfigs(t *testing.T, p *ProxyInstallation) {
 	}
 }
 
-func testConfigureOSFirewall(t *testing.T, p *ProxyInstallation) {
+func testConfigureOSXFirewall(t *testing.T, p *ProxyInstallation) {
 	// configureOSFirewall.
 	// Must configure os firewall by building rule file from template,
 	// putting it in data directory and executing it.
@@ -116,7 +148,7 @@ func testConfigureOSFirewall(t *testing.T, p *ProxyInstallation) {
 	adapterConfig.V2Ray.InboundPort = 1234
 	writeJSONOrFail(t, p.pluginAgentConfigPath(), &adapterConfig)
 
-	if err := configureOSFirewall(p); err != nil {
+	if err := configureOSXFirewall(p); err != nil {
 		t.Fatalf("configureOSFirewall returned error: %v", err)
 	}
 	// Check firewall script executed by examining output file.

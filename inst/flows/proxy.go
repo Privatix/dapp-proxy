@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/privatix/dappctrl/util"
@@ -94,7 +95,7 @@ func (p *ProxyInstallation) setProdDir(dir string) error {
 func (p *ProxyInstallation) saveAsFile() error {
 	f, err := os.Create(p.installationFile())
 	if err != nil {
-		return err
+		return fmt.Errorf("could not create installation file: %v", err)
 	}
 
 	return json.NewEncoder(f).Encode(p)
@@ -183,6 +184,13 @@ func (p *ProxyInstallation) pluginClientConfigPath() string {
 
 func (p *ProxyInstallation) pluginClientConfigPathToUpdate() string {
 	return p.prodPathToUpdateJoin(p.Path.PluginClientConf)
+}
+
+func (p *ProxyInstallation) configureProxyScript() string {
+	if runtime.GOOS != "darwin" {
+		return ""
+	}
+	return p.prodPathJoin("data/scripts/mac/configuresocksfirewallproxy.sh")
 }
 
 func (p *ProxyInstallation) logsDirPath() string {

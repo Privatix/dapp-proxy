@@ -1,10 +1,10 @@
 package flows
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -387,27 +387,37 @@ func removeOSProxyConfigurationIfAny(p *ProxyInstallation) error {
 }
 
 func configureOSFirewall(p *ProxyInstallation) error {
+	// Need to open firewall for incoming traffic only on agents side.
+	if !p.IsAgent {
+		return nil
+	}
 	if runtime.GOOS == "darwin" {
 		return configureOSXFirewall(p)
+	}
+	if runtime.GOOS == "windows" {
+		return configureWinFirewall(p)
 	}
 	return nil
 }
 
 func rollbackOSFirewallConfiguration(p *ProxyInstallation) error {
+	if !p.IsAgent {
+		return nil
+	}
 	if runtime.GOOS == "darwin" {
 		return rollbackOSXFirewallConfiguration(p)
+	}
+	if runtime.GOOS == "windows" {
+		return rollbackWinFirewallConfiguration(p)
 	}
 	return nil
 }
 
 func configureOSXFirewall(p *ProxyInstallation) error {
-	// Need to open firewall for incoming traffic only on agents side.
-	if !p.IsAgent {
-		return nil
-	}
-
 	config := new(adapter.Config)
-	readJSON(p.pluginAgentConfigPath(), config)
+	if err := readJSON(p.pluginAgentConfigPath(), config); err != nil {
+		return fmt.Errorf("could not read agent plugin config: %v", err)
+	}
 	cmd := exec.Command(p.osxFilrewallScript(), "on", fmt.Sprint(config.V2Ray.InboundPort), p.osxFirewallRuleFile())
 
 	if err := cmd.Run(); err != nil {
@@ -416,27 +426,60 @@ func configureOSXFirewall(p *ProxyInstallation) error {
 	return nil
 }
 
-func readAgentInboundPort(p *ProxyInstallation) (uint, error) {
-	text, err := ioutil.ReadFile(p.pluginAgentConfigPath())
-	if err != nil {
-		return 0, fmt.Errorf("could not read agent config: %v", err)
-	}
-	var conf adapter.Config
-	if err := json.Unmarshal(text, &conf); err != nil {
-		return 0, fmt.Errorf("could not parse agent config: %v", err)
-	}
-
-	return conf.V2Ray.InboundPort, nil
-}
-
 func rollbackOSXFirewallConfiguration(p *ProxyInstallation) error {
-	if !p.IsAgent {
-		return nil
-	}
 	cmd := exec.Command(p.osxFilrewallScript(), "off")
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("could not execute configure firewall script: %v", err)
+	}
+	return nil
+}
+
+func configureWinFirewall(p *ProxyInstallation) error {
+	config := new(adapter.Config)
+	if err := readJSON(p.pluginAgentConfigPath(), config); err != nil {
+		return fmt.Errorf("could not read agent plugin config: %v", err)
+	}
+	for _, proto := range []string{"tcp", "udp"} {
+		// Need to run powershell scripts implicitly using `powershell` command,
+		// otherwise it's not working.
+		// To execute script following args need to be provided:
+		// -ExecutionPolicy Bypass -File <?script file path?>
+		args := []string{"-ExecutionPolicy", "Bypass", "-File", p.winFirewallScript(),
+			"-Create", "-ServiceName", p.V2RayDaemonName, "-ProgramPath",
+			p.v2rayExecPath(), "-Port", fmt.Sprint(config.V2Ray.InboundPort),
+			"-Protocol", proto}
+		if err := runPowershell(args); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func rollbackWinFirewallConfiguration(p *ProxyInstallation) error {
+	// Need to run powershell scripts implicitly using `powershell` command,
+	// otherwise it's not working.
+	// To execute script following args need to be provided:
+	// -ExecutionPolicy Bypass -File <?script file path?>
+	args := []string{"-ExecutionPolicy", "Bypass", "-File", p.winFirewallScript(),
+		"-Remove", "-ServiceName", p.V2RayDaemonName}
+	if err := runPowershell(args); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func runPowershell(args []string) error {
+	cmd := exec.Command("powershell", args...)
+
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	if err := cmd.Run(); err != nil {
+		outStr, errStr := outbuf.String(), errbuf.String()
+		return fmt.Errorf("%v\nout:\n%s\nerr:\n%s", err, outStr, errStr)
 	}
 	return nil
 }

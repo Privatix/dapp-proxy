@@ -24,6 +24,7 @@ type prodDirPath struct {
 	PluginAgentConfTpl  string
 	PluginClientConfTpl string
 	OSXFirewallScript   string
+	WINFirewallScript   string
 	OSXFirewallRuleFile string
 }
 
@@ -54,6 +55,7 @@ func NewProxyInstallation() *ProxyInstallation {
 			PluginAgentConfTpl:  "template/adapter.agent.config.json",
 			PluginClientConfTpl: "template/adapter.client.config.json",
 			OSXFirewallScript:   "data/scripts/mac/pf-rule.sh",
+			WINFirewallScript:   "data/scripts/win/set-firewall-rule.ps1",
 			OSXFirewallRuleFile: "data/dapp-proxy.firewall.rule",
 		},
 	}
@@ -207,4 +209,8 @@ func (p *ProxyInstallation) osxFilrewallScript() string {
 
 func (p *ProxyInstallation) osxFirewallRuleFile() string {
 	return p.prodPathJoin(p.Path.OSXFirewallRuleFile)
+}
+
+func (p *ProxyInstallation) winFirewallScript() string {
+	return p.prodPathJoin(p.Path.WINFirewallScript)
 }

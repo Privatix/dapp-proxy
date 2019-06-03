@@ -29,7 +29,7 @@ func TestInstallFuncs(t *testing.T) {
 		t.Run("OK", func(t *testing.T) {
 			// No ".env.config.json" file is present means ok.
 			if err := validateInstallEnvironment(p); err != nil {
-				t.Fatalf("validateInstallEnvironment() returned error: %v", err)
+				t.Fatalf("validateInstallEnvironment() returned an error: %v", err)
 			}
 		})
 
@@ -53,7 +53,7 @@ func TestInstallFuncs(t *testing.T) {
 		copyDirOrFail(t, os.Getenv("SOURCE_DIR"), proddir)
 
 		if err := saveInstallationDetails(p); err != nil {
-			t.Fatalf("saveInstallationDetails returned error: %v", err)
+			t.Fatalf("saveInstallationDetails returned an error: %v", err)
 		}
 
 		var p2 ProxyInstallation
@@ -64,28 +64,36 @@ func TestInstallFuncs(t *testing.T) {
 		}
 	})
 
-	t.Run("InstallStepsInOrderOSX", func(t *testing.T) {
+	t.Run("ConfigureOSXFirewall", func(t *testing.T) {
 		if runtime.GOOS != "darwin" {
 			t.Skip("NOT OSX")
 		}
-		// Test statefull and dependent installation funcs in flow order for OSX.
-		// Testing funcs:
-		//    (ignored) parseInstallFlags
-		//    (ignored) validateInstallEnvironment
-		// 1. preparePluginConfigs
-		//    (ignored) createV2RayDaemon
-		//    (ignored) createPluginDaemon
-		// 2. configureOSXFirewall
-		//    (ignored) saveInstallationDetails
-		//    (ignored) startV2rayDaemon
-		//    (ignored) startPluginDaemon
 		proddir := createTempDirOrFail(t)
 		defer os.RemoveAll(proddir)
 
 		// Proxy configuration object is used in all funcs tests here.
 		p := NewProxyInstallation()
-		// Client installation is the same as agent, but agent has a bit more
-		// things to do. So testing agent tests client too.
+		p.init(proddir, "agent")
+
+		// Copy source dir.
+		copyDirOrFail(t, os.Getenv("SOURCE_DIR"), proddir)
+
+		testPreparePluginConfigs(t, p) // To proceed further config files need
+		// to be prepared.
+
+		// Test firewall configuration.
+		testConfigureOSXFirewall(t, p)
+	})
+
+	t.Run("ConfigureWinFirewall", func(t *testing.T) {
+		if runtime.GOOS != "windows" {
+			t.Skip("NOT WIN")
+		}
+		proddir := createTempDirOrFail(t)
+		defer os.RemoveAll(proddir)
+
+		// Proxy configuration object is used in all funcs tests here.
+		p := NewProxyInstallation()
 		p.init(proddir, "agent")
 
 		// Copy source dir.
@@ -93,8 +101,11 @@ func TestInstallFuncs(t *testing.T) {
 
 		// Test all funcs in order.
 
-		testPreparePluginConfigs(t, p)
-		testConfigureOSXFirewall(t, p)
+		testPreparePluginConfigs(t, p) // To proceed further config files need
+		// to be prepared.
+
+		// Test firewall configuration.
+		testConfigureWinFirewall(t, p)
 	})
 }
 
@@ -102,7 +113,7 @@ func testPreparePluginConfigs(t *testing.T, p *ProxyInstallation) {
 	// Must copy plugin config files and adjust pathes in it.
 
 	if err := preparePluginConfigs(p); err != nil {
-		t.Fatalf("preparePluginConfigs(p) returned error: %v", err)
+		t.Fatalf("preparePluginConfigs(p) returned an error: %v", err)
 	}
 	// Check pathes are updated.
 
@@ -129,14 +140,12 @@ func testPreparePluginConfigs(t *testing.T, p *ProxyInstallation) {
 }
 
 func testConfigureOSXFirewall(t *testing.T, p *ProxyInstallation) {
-	// configureOSFirewall.
-	// Must configure os firewall by building rule file from template,
-	// putting it in data directory and executing it.
+	// Must configure os firewall using script.
 
 	// Fake the script file.
 	fakescript := filepath.Join(p.ProdDir, "data/fake-script.sh")
 	outfile := filepath.Join(p.ProdDir, "script-output")
-	// To test that script was properly built and executed the script output
+	// To test that script was properly executed the script-output
 	// file tested for containing correct arguments.
 	writeFileOrFail(t, fakescript, []byte(fmt.Sprintf("#!/bin/sh\necho $@ >  %s", outfile)))
 
@@ -149,13 +158,72 @@ func testConfigureOSXFirewall(t *testing.T, p *ProxyInstallation) {
 	writeJSONOrFail(t, p.pluginAgentConfigPath(), &adapterConfig)
 
 	if err := configureOSXFirewall(p); err != nil {
-		t.Fatalf("configureOSFirewall returned error: %v", err)
+		t.Fatalf("configureOSXFirewall returned an error: %v", err)
 	}
-	// Check firewall script executed by examining output file.
+	// Check firewall script executed by script-output file.
 	if content, err := ioutil.ReadFile(outfile); err != nil {
-		t.Fatalf("failed to read firewall rule file: %v", err)
+		t.Fatalf("failed to read script output file: %v", err)
 	} else if exp := fmt.Sprint("on ", adapterConfig.V2Ray.InboundPort, " ", p.osxFirewallRuleFile()); !strings.Contains(string(content), exp) {
 		t.Fatalf("`%s` not found in firewall rule file: %s", exp, content)
+	}
+}
+
+func testConfigureWinFirewall(t *testing.T, p *ProxyInstallation) {
+	// Must configure win firewall using script.
+
+	// Fake the script file.
+	fakescript := filepath.Join(p.ProdDir, "data/fake-script.ps1")
+	outfile := filepath.Join(p.ProdDir, "script-output")
+	// To test that script was properly executed the script-output
+	// file tested for containing correct arguments.
+	writeFileOrFail(t, fakescript, []byte(fmt.Sprintf(`
+		[cmdletbinding(
+			DefaultParameterSetName = 'Create'
+		)]
+		param (
+			[Parameter(ParameterSetName = "Create", Mandatory = $true)]
+			[switch]$Create,
+			[Parameter(ParameterSetName = "Remove", Mandatory = $true)]
+			[switch]$Remove,
+			[Parameter(ParameterSetName = "Create")]
+			[Parameter(ParameterSetName = "Remove")]
+			[string]$ServiceName,
+			[Parameter(ParameterSetName = "Create")]
+			[string]$ProgramPath,
+			[Parameter(ParameterSetName = "Create")]
+			[int]$Port,
+			[Parameter(ParameterSetName = "Create")]
+			[string]$Protocol = 'tcp'
+		)
+		if ($PSBoundParameters.ContainsKey('Create')) {
+			echo $ServiceName $ProgramPath $Port $Protocol > %s
+		}
+		if ($PSBoundParameters.ContainsKey('Remove')) {
+		}
+	`, outfile))) // Test version of set-firewall-rule.ps1 that only writes arguments to file
+	// and does nothing else.
+
+	p.Path.WINFirewallScript = "data/fake-script.sh"
+
+	// Set test v2ray port.
+	var adapterConfig adapter.Config
+	readJSONORFail(t, p.pluginAgentConfigPath(), &adapterConfig)
+	adapterConfig.V2Ray.InboundPort = 1234
+	writeJSONOrFail(t, p.pluginAgentConfigPath(), &adapterConfig)
+
+	if err := configureWinFirewall(p); err != nil {
+		t.Fatalf("configureWinFirewall returned an error: %v", err)
+	}
+	// Check firewall script executed by script-output file.
+	// Must execute script twise once for tcp and once for udp.
+	expTCP := fmt.Sprint(p.V2RayDaemonName, " ", p.v2rayExecPath(), " ", adapterConfig.V2Ray.InboundPort, " ", "tcp")
+	expUDP := fmt.Sprint(p.V2RayDaemonName, " ", p.v2rayExecPath(), " ", adapterConfig.V2Ray.InboundPort, " ", "udp")
+	if content, err := ioutil.ReadFile(outfile); err != nil {
+		t.Fatalf("failed to read script output file: %v", err)
+	} else if !strings.Contains(string(content), expTCP) {
+		t.Fatalf("`%s` not found in `%s`", expTCP, content)
+	} else if !strings.Contains(string(content), expUDP) {
+		t.Fatalf("`%s` not found in `%s`", expUDP, content)
 	}
 }
 

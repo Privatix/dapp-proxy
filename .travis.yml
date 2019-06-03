@@ -11,7 +11,7 @@ install:
     - ${TRAVIS_BUILD_DIR}/scripts/build.sh
 
 script:
-    - go test -v ./...
+    - SOURCE_DIR=$(pwd)/product go test -v ./...
 
 notifications:
     slack:

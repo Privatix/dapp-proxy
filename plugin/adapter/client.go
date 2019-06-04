@@ -26,7 +26,7 @@ func AsClient(conf *Config) {
 		}
 
 		adapterLogger.Info("configuring operating system to use proxy")
-		err = osconnector.ConfigureWithScript(conf.ConfigureProxyScript, "127.0.0.1", conf.ProxyPort)
+		err = osconnector.ConfigureWithScript(conf.ConfigureProxyScript, conf.ProxyPort)
 		must("could not configure operating system to use proxy", err)
 
 		u := v2rayclient.NewInboundUsageGetter(adapterV2RayConn, conf.V2Ray.InboundTag)

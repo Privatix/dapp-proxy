@@ -17,10 +17,10 @@ func changedServicesFileNamePath(script string) string {
 }
 
 // ConfigureWithScript uses script to configure proxy.
-func ConfigureWithScript(script, host string, port int) error {
+func ConfigureWithScript(script string, port int) error {
 	chsf := changedServicesFileNamePath(script)
 
-	cmd := exec.Command("/bin/sh", script, "on", chsf, host, fmt.Sprint(port))
+	cmd := exec.Command("/bin/sh", script, "on", chsf, "127.0.0.1", fmt.Sprint(port))
 	return cmd.Run()
 }
 

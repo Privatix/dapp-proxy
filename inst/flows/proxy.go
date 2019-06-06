@@ -43,19 +43,23 @@ type ProxyInstallation struct {
 
 // NewProxyInstallation returns an instance with default values set.
 func NewProxyInstallation() *ProxyInstallation {
+	execPostfix := ""
+	if runtime.GOOS == "windows" {
+		execPostfix = ".exe"
+	}
 	return &ProxyInstallation{
 		Path: prodDirPath{
 			DataDir:             "data",
 			V2RayAgentConfig:    "config/agent.v2ray.config.json",
 			V2RayClientConfig:   "config/client.v2ray.config.json",
-			V2RayExec:           "bin/v2ray/v2ray",
-			PluginExec:          "bin/dappproxy",
+			V2RayExec:           "bin/v2ray/v2ray" + execPostfix,
+			PluginExec:          "bin/dappproxy" + execPostfix,
 			PluginAgentConf:     "config/adapter.agent.config.json",
 			PluginClientConf:    "config/adapter.client.config.json",
 			PluginAgentConfTpl:  "template/adapter.agent.config.json",
 			PluginClientConfTpl: "template/adapter.client.config.json",
-			OSXFirewallScript:   "data/scripts/mac/pf-rule.sh",
-			WINFirewallScript:   "data/scripts/win/set-firewall-rule.ps1",
+			OSXFirewallScript:   "bin/scripts/mac/pf-rule.sh",
+			WINFirewallScript:   "bin/scripts/win/set-firewall-rule.ps1",
 			OSXFirewallRuleFile: "data/dapp-proxy.firewall.rule",
 		},
 	}
@@ -192,7 +196,7 @@ func (p *ProxyInstallation) configureProxyScript() string {
 	if runtime.GOOS != "darwin" {
 		return ""
 	}
-	return p.prodPathJoin("data/scripts/mac/configuresocksfirewallproxy.sh")
+	return p.prodPathJoin("bin/scripts/mac/configuresocksfirewallproxy.sh")
 }
 
 func (p *ProxyInstallation) logsDirPath() string {

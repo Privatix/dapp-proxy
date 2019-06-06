@@ -1,5 +1,5 @@
 {
-    "ConfigureProxyScript": "/pathtoinstallation/product/data/scripts/configuresocksfirewallproxy.sh",
+    "ConfigureProxyScript": "/pathtoinstallation/product/bin/scripts/configuresocksfirewallproxy.sh",
     "ChannelDir": "/pathtoinstallation/product/data",
     "FileLog": {
         "Level": "debug",

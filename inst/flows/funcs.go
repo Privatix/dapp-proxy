@@ -454,17 +454,8 @@ func configureWinFirewall(p *ProxyInstallation) error {
 }
 
 func rollbackWinFirewallConfiguration(p *ProxyInstallation) error {
-	// Need to run powershell scripts implicitly using `powershell` command,
-	// otherwise it's not working.
-	// To execute script following args need to be provided:
-	// -ExecutionPolicy Bypass -File <?script file path?>
-	args := []string{"-ExecutionPolicy", "Bypass", "-File", p.winFirewallScript(),
-		"-Remove", "-ServiceName", p.V2RayDaemonName}
-	if err := runPowershell(args); err != nil {
-		return err
-	}
-
-	return nil
+	return winutils.RunPowershellScript(p.winFirewallScript(), "-Remove",
+		"-ServiceName", p.V2RayDaemonName)
 }
 
 func runPowershell(args []string) error {

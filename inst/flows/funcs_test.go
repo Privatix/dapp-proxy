@@ -143,13 +143,13 @@ func testConfigureOSXFirewall(t *testing.T, p *ProxyInstallation) {
 	// Must configure os firewall using script.
 
 	// Fake the script file.
-	fakescript := filepath.Join(p.ProdDir, "data/fake-script.sh")
+	fakescript := filepath.Join(p.ProdDir, "bin/fake-script.sh")
 	outfile := filepath.Join(p.ProdDir, "script-output")
 	// To test that script was properly executed the script-output
 	// file tested for containing correct arguments.
 	writeFileOrFail(t, fakescript, []byte(fmt.Sprintf("#!/bin/sh\necho $@ >  %s", outfile)))
 
-	p.Path.OSXFirewallScript = "data/fake-script.sh"
+	p.Path.OSXFirewallScript = "bin/fake-script.sh"
 
 	// Set test v2ray port.
 	var adapterConfig adapter.Config
@@ -172,7 +172,7 @@ func testConfigureWinFirewall(t *testing.T, p *ProxyInstallation) {
 	// Must configure win firewall using script.
 
 	// Fake the script file.
-	fakescript := filepath.Join(p.ProdDir, "data/fake-script.ps1")
+	fakescript := filepath.Join(p.ProdDir, "bin/fake-script.ps1")
 	outfile := filepath.Join(p.ProdDir, "script-output")
 	// To test that script was properly executed the script-output
 	// file tested for containing correct arguments.
@@ -203,7 +203,7 @@ func testConfigureWinFirewall(t *testing.T, p *ProxyInstallation) {
 	`, outfile))) // Test version of set-firewall-rule.ps1 that only writes arguments to file
 	// and does nothing else.
 
-	p.Path.WINFirewallScript = "data/fake-script.sh"
+	p.Path.WINFirewallScript = "bin/fake-script.sh"
 
 	// Set test v2ray port.
 	var adapterConfig adapter.Config

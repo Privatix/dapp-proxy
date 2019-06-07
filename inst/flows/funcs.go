@@ -190,6 +190,16 @@ func removePluginDaemon(p *ProxyInstallation) error {
 	return nil
 }
 
+func syncTime(p *ProxyInstallation) error {
+	if runtime.GOARCH == "darwin" {
+		cmd := exec.Command(p.syncTimeScriptPath())
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to run sync time script: %v", err)
+		}
+	}
+	return nil
+}
+
 func startDaemonsSilent(p *ProxyInstallation) error {
 	for _, name := range []string{p.V2RayDaemonName, p.PluginDaemonName} {
 		service, err := daemon.New(name, "")

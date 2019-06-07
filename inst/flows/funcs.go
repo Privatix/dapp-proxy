@@ -16,6 +16,7 @@ import (
 	"github.com/privatix/dapp-installer/util"
 	"github.com/privatix/dapp-proxy/plugin/adapter"
 	"github.com/privatix/dapp-proxy/plugin/osconnector"
+	"github.com/privatix/dapp-proxy/winutils"
 )
 
 const (
@@ -441,15 +442,10 @@ func configureWinFirewall(p *ProxyInstallation) error {
 		return fmt.Errorf("could not read agent plugin config: %v", err)
 	}
 	for _, proto := range []string{"tcp", "udp"} {
-		// Need to run powershell scripts implicitly using `powershell` command,
-		// otherwise it's not working.
-		// To execute script following args need to be provided:
-		// -ExecutionPolicy Bypass -File <?script file path?>
-		args := []string{"-ExecutionPolicy", "Bypass", "-File", p.winFirewallScript(),
-			"-Create", "-ServiceName", p.V2RayDaemonName, "-ProgramPath",
-			p.v2rayExecPath(), "-Port", fmt.Sprint(config.V2Ray.InboundPort),
-			"-Protocol", proto}
-		if err := runPowershell(args); err != nil {
+		err := winutils.RunPowershellScript(p.winFirewallScript(), "-Create",
+			"-ServiceName", p.V2RayDaemonName, "-ProgramPath", p.v2rayExecPath(),
+			"-Port", fmt.Sprint(config.V2Ray.InboundPort), "-Protocol", proto)
+		if err != nil {
 			return err
 		}
 	}
@@ -458,17 +454,8 @@ func configureWinFirewall(p *ProxyInstallation) error {
 }
 
 func rollbackWinFirewallConfiguration(p *ProxyInstallation) error {
-	// Need to run powershell scripts implicitly using `powershell` command,
-	// otherwise it's not working.
-	// To execute script following args need to be provided:
-	// -ExecutionPolicy Bypass -File <?script file path?>
-	args := []string{"-ExecutionPolicy", "Bypass", "-File", p.winFirewallScript(),
-		"-Remove", "-ServiceName", p.V2RayDaemonName}
-	if err := runPowershell(args); err != nil {
-		return err
-	}
-
-	return nil
+	return winutils.RunPowershellScript(p.winFirewallScript(), "-Remove",
+		"-ServiceName", p.V2RayDaemonName)
 }
 
 func runPowershell(args []string) error {

@@ -14,19 +14,23 @@ import (
 )
 
 type prodDirPath struct {
-	DataDir             string
-	V2RayAgentConfig    string
-	V2RayClientConfig   string
-	V2RayExec           string
-	PluginExec          string
-	PluginAgentConf     string
-	PluginClientConf    string
-	PluginAgentConfTpl  string
-	PluginClientConfTpl string
-	OSXFirewallScript   string
-	WINFirewallScript   string
-	OSXFirewallRuleFile string
-	OSXSyncTimeScript   string
+	DataDir                   string
+	V2RayAgentConfig          string
+	V2RayClientConfig         string
+	V2RayExec                 string
+	PluginExec                string
+	PluginAgentConf           string
+	PluginClientConf          string
+	PluginAgentConfTpl        string
+	PluginClientConfTpl       string
+	OSXFirewallScript         string
+	OSXFirewallRuleFile       string
+	OSXConfigureProxyScript   string
+	WINFirewallScript         string
+	WinConfigureProxyScript   string
+	LinuxFirewallScript       string
+	LinuxConfigureProxyScript string
+	OSXSyncTimeScript         string
 }
 
 // ProxyInstallation is proxy product installation details.
@@ -50,19 +54,23 @@ func NewProxyInstallation() *ProxyInstallation {
 	}
 	return &ProxyInstallation{
 		Path: prodDirPath{
-			DataDir:             "data",
-			V2RayAgentConfig:    "config/agent.v2ray.config.json",
-			V2RayClientConfig:   "config/client.v2ray.config.json",
-			V2RayExec:           "bin/v2ray/v2ray" + execPostfix,
-			PluginExec:          "bin/dappproxy" + execPostfix,
-			PluginAgentConf:     "config/adapter.agent.config.json",
-			PluginClientConf:    "config/adapter.client.config.json",
-			PluginAgentConfTpl:  "template/adapter.agent.config.json",
-			PluginClientConfTpl: "template/adapter.client.config.json",
-			OSXFirewallScript:   "bin/scripts/mac/pf-rule.sh",
-			WINFirewallScript:   "bin/scripts/win/set-firewall-rule.ps1",
-			OSXFirewallRuleFile: "data/dapp-proxy.firewall.rule",
-			OSXSyncTimeScript:   "bin/mac/sync-time.sh",
+			DataDir:                   "data",
+			V2RayAgentConfig:          "config/agent.v2ray.config.json",
+			V2RayClientConfig:         "config/client.v2ray.config.json",
+			V2RayExec:                 "bin/v2ray/v2ray" + execPostfix,
+			PluginExec:                "bin/dappproxy" + execPostfix,
+			PluginAgentConf:           "config/adapter.agent.config.json",
+			PluginClientConf:          "config/adapter.client.config.json",
+			PluginAgentConfTpl:        "template/adapter.agent.config.json",
+			PluginClientConfTpl:       "template/adapter.client.config.json",
+			OSXFirewallScript:         "bin/scripts/mac/pf-rule.sh",
+			OSXFirewallRuleFile:       "data/dapp-proxy.firewall.rule",
+			OSXConfigureProxyScript:   "bin/scripts/mac/configuresocksfirewallproxy.sh",
+			OSXSyncTimeScript:         "bin/mac/sync-time.sh",
+			WINFirewallScript:         "bin/scripts/win/set-firewall-rule.ps1",
+			WinConfigureProxyScript:   "bin/scripts/win/update-proxysettings.ps1",
+			LinuxFirewallScript:       "bin/scripts/linux/configure-firewall.bash",
+			LinuxConfigureProxyScript: "bin/scripts/linux/configure-socks-proxy.bash",
 		},
 	}
 }
@@ -195,10 +203,14 @@ func (p *ProxyInstallation) pluginClientConfigPathToUpdate() string {
 }
 
 func (p *ProxyInstallation) configureProxyScript() string {
-	if runtime.GOOS != "darwin" {
-		return ""
+	if goos := runtime.GOOS; goos == "darwin" {
+		return p.prodPathJoin(p.Path.OSXConfigureProxyScript)
+	} else if goos == "windows" {
+		return p.prodPathJoin(p.Path.WinConfigureProxyScript)
+	} else if goos == "linux" {
+		return p.prodPathJoin(p.Path.LinuxConfigureProxyScript)
 	}
-	return p.prodPathJoin("bin/scripts/mac/configuresocksfirewallproxy.sh")
+	return ""
 }
 
 func (p *ProxyInstallation) logsDirPath() string {
@@ -223,4 +235,8 @@ func (p *ProxyInstallation) winFirewallScript() string {
 
 func (p *ProxyInstallation) syncTimeScriptPath() string {
 	return p.prodPathJoin(p.Path.OSXSyncTimeScript)
+}
+
+func (p *ProxyInstallation) linuxFirewallScript() string {
+	return p.prodPathJoin(p.Path.LinuxFirewallScript)
 }

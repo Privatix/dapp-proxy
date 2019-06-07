@@ -95,6 +95,7 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 	setChannelDir(p, config)
 
 	config.ConfigureProxyScript = p.configureProxyScript()
+	config.ProxyBackupFile = p.proxyBackupFile()
 
 	return saveJSON(config, p.pluginClientConfigPath())
 }
@@ -390,7 +391,7 @@ func removeOSProxyConfigurationIfAny(p *ProxyInstallation) error {
 	if p.IsAgent {
 		return nil
 	}
-	err := osconnector.RollbackWithScript(p.configureProxyScript())
+	err := osconnector.RollbackWithScript(p.configureProxyScript(), p.proxyBackupFile())
 	if err != osconnector.ErrRollbackNotNeeded {
 		return err
 	}
@@ -402,26 +403,28 @@ func configureOSFirewall(p *ProxyInstallation) error {
 	if !p.IsAgent {
 		return nil
 	}
-	if runtime.GOOS == "darwin" {
+	if goos := runtime.GOOS; goos == "darwin" {
 		return configureOSXFirewall(p)
-	}
-	if runtime.GOOS == "windows" {
+	} else if goos == "windows" {
 		return configureWinFirewall(p)
+	} else if goos == "linux" {
+		return configureLinuxFirewall(p)
 	}
-	return nil
+	return fmt.Errorf("unknown GOOS: %v", runtime.GOOS)
 }
 
 func rollbackOSFirewallConfiguration(p *ProxyInstallation) error {
 	if !p.IsAgent {
 		return nil
 	}
-	if runtime.GOOS == "darwin" {
+	if goos := runtime.GOOS; goos == "darwin" {
 		return rollbackOSXFirewallConfiguration(p)
-	}
-	if runtime.GOOS == "windows" {
+	} else if goos == "windows" {
 		return rollbackWinFirewallConfiguration(p)
+	} else if goos == "linux" {
+		return rollbackLinuxFirewallConfiguration(p)
 	}
-	return nil
+	return fmt.Errorf("unknown GOOS: %v", runtime.GOOS)
 }
 
 func configureOSXFirewall(p *ProxyInstallation) error {
@@ -466,6 +469,26 @@ func configureWinFirewall(p *ProxyInstallation) error {
 func rollbackWinFirewallConfiguration(p *ProxyInstallation) error {
 	return winutils.RunPowershellScript(p.winFirewallScript(), "-Remove",
 		"-ServiceName", p.V2RayDaemonName)
+}
+
+func configureLinuxFirewall(p *ProxyInstallation) error {
+	return runLinuxConfigureFirewallScript(p, "on")
+}
+
+func rollbackLinuxFirewallConfiguration(p *ProxyInstallation) error {
+	return runLinuxConfigureFirewallScript(p, "off")
+}
+
+func runLinuxConfigureFirewallScript(p *ProxyInstallation, action string) error {
+	config := new(adapter.Config)
+	if err := readJSON(p.pluginAgentConfigPath(), config); err != nil {
+		return fmt.Errorf("could not read agent plugin config: %v", err)
+	}
+	cmd := exec.Command(p.linuxFirewallScript(), action, fmt.Sprint(config.V2Ray.InboundPort))
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to run configure firewall script for linux: %v", err)
+	}
+	return nil
 }
 
 func runPowershell(args []string) error {

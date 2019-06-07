@@ -21,6 +21,9 @@ type Config struct {
 	// ConfigureProxyScript can configure operating system to use
 	// or stop using sock5 proxy.
 	ConfigureProxyScript string
+	// ProxyBackupFile is a location of a file used to backup proxy configs before
+	// making any change.
+	ProxyBackupFile string
 	// ChannelDir used to place active channel files.
 	ChannelDir string
 	// ProxyPort is the port proxy is listening on '127.0.0.1'

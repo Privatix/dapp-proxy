@@ -95,6 +95,7 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 	setChannelDir(p, config)
 
 	config.ConfigureProxyScript = p.configureProxyScript()
+	config.ProxyBackupFile = p.proxyBackupFile()
 
 	return saveJSON(config, p.pluginClientConfigPath())
 }
@@ -390,7 +391,7 @@ func removeOSProxyConfigurationIfAny(p *ProxyInstallation) error {
 	if p.IsAgent {
 		return nil
 	}
-	err := osconnector.RollbackWithScript(p.configureProxyScript())
+	err := osconnector.RollbackWithScript(p.configureProxyScript(), p.proxyBackupFile())
 	if err != osconnector.ErrRollbackNotNeeded {
 		return err
 	}

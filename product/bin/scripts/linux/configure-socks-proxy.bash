@@ -13,7 +13,7 @@ if [ "$1" == "on" ]; then
     fi
 
     gsettings set org.gnome.system.proxy mode 'manual'
-    gsettings set org.gnome.system.proxy.socks port $port
+    gsettings set org.gnome.system.proxy.socks port "$port"
     gsettings set org.gnome.system.proxy.socks host 'localhost'
 else
     # restore configuration from backup.

@@ -26,11 +26,12 @@ type prodDirPath struct {
 	OSXFirewallScript         string
 	OSXFirewallRuleFile       string
 	OSXConfigureProxyScript   string
+	OSXSyncTimeScript         string
 	WINFirewallScript         string
 	WinConfigureProxyScript   string
 	LinuxFirewallScript       string
 	LinuxConfigureProxyScript string
-	OSXSyncTimeScript         string
+	ProxyBackupFile           string
 }
 
 // ProxyInstallation is proxy product installation details.
@@ -66,6 +67,7 @@ func NewProxyInstallation() *ProxyInstallation {
 			OSXFirewallScript:         "bin/scripts/mac/pf-rule.sh",
 			OSXFirewallRuleFile:       "data/dapp-proxy.firewall.rule",
 			OSXConfigureProxyScript:   "bin/scripts/mac/configuresocksfirewallproxy.sh",
+			ProxyBackupFile:           "data/proxy-backup",
 			OSXSyncTimeScript:         "bin/mac/sync-time.sh",
 			WINFirewallScript:         "bin/scripts/win/set-firewall-rule.ps1",
 			WinConfigureProxyScript:   "bin/scripts/win/update-proxysettings.ps1",
@@ -239,4 +241,8 @@ func (p *ProxyInstallation) syncTimeScriptPath() string {
 
 func (p *ProxyInstallation) linuxFirewallScript() string {
 	return p.prodPathJoin(p.Path.LinuxFirewallScript)
+}
+
+func (p *ProxyInstallation) proxyBackupFile() string {
+	return p.prodPathJoin(p.Path.ProxyBackupFile)
 }

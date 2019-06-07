@@ -26,7 +26,7 @@ func AsClient(conf *Config) {
 		}
 
 		adapterLogger.Info("configuring operating system to use proxy")
-		err = osconnector.ConfigureWithScript(conf.ConfigureProxyScript, conf.ProxyPort)
+		err = osconnector.ConfigureWithScript(conf.ConfigureProxyScript, conf.ProxyBackupFile, conf.ProxyPort)
 		must("could not configure operating system to use proxy", err)
 
 		u := v2rayclient.NewInboundUsageGetter(adapterV2RayConn, conf.V2Ray.InboundTag)
@@ -46,7 +46,7 @@ func AsClient(conf *Config) {
 		must("could not remove vmess", err)
 
 		adapterLogger.Info("configuring operating system to stop using proxy")
-		err = osconnector.RollbackWithScript(conf.ConfigureProxyScript)
+		err = osconnector.RollbackWithScript(conf.ConfigureProxyScript, conf.ProxyBackupFile)
 		must("could not configure operating system to stop using proxy", err)
 		adapterSessClient.StopSession(change.Channel)
 		must("failed to stop session", err)

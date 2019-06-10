@@ -73,6 +73,7 @@ func saveJSON(v interface{}, dest string) error {
 }
 
 func preparePluginConfigs(p *ProxyInstallation) error {
+	// Agent config.
 	config := new(adapter.Config)
 	if err := readJSON(p.pluginAgentConfigTplPath(), config); err != nil {
 		return err
@@ -86,6 +87,8 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 		return err
 	}
 
+	// Client config.
+	config = new(adapter.Config)
 	if err := readJSON(p.pluginClientConfTplPath(), config); err != nil {
 		return err
 	}
@@ -114,6 +117,7 @@ func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
 		return saveJSON(config, p.pluginAgentConfigPathToUpdate())
 	}
 
+	config = new(adapter.Config)
 	if err := readJSON(p.pluginClientConfTplPathToUpdate(), config); err != nil {
 		return err
 	}

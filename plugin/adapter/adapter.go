@@ -64,20 +64,26 @@ func runAdapter(conf *Config, beforeStart func(), onConnStart, onConnStop func(*
 
 	channelStorage := newActiveChannelStorage(conf.ChannelDir)
 
+	beforeStart()
+
+	adapterLogger.Info("Starting proxy adapter")
+
 	if ch, err := channelStorage.load(); err != nil {
 		adapterLogger.Fatal(err.Error())
 	} else if ch != "" {
+		adapterLogger.Info("Stop session for left over channel: " + ch)
 		err := adapterSessClient.StopSession(ch)
 		if err != nil {
 			adapterLogger.Fatal(err.Error())
 		}
+		if err := channelStorage.remove(); err != nil {
+			adapterLogger.Fatal(err.Error())
+		}
+	} else {
+		adapterLogger.Info("No left over channel")
 	}
 
-	beforeStart()
-
 	go handleReports()
-
-	adapterLogger.Info("Starting proxy adapter")
 
 	for change := range adapterChangesChan {
 		logger := adapterLogger.Add("connectionChange", *change)

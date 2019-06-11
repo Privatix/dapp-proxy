@@ -160,7 +160,11 @@ func removeV2RayDaemon(p *ProxyInstallation) error {
 }
 
 func createPluginDaemon(p *ProxyInstallation) error {
-	service, err := daemon.New(p.PluginDaemonName, p.PluginDaemonDesc, p.V2RayDaemonName)
+	v2ray := p.V2RayDaemonName
+	if runtime.GOOS == "windows" {
+		v2ray = strings.Replace(p.V2RayDaemonName, " ", "_", -1)
+	}
+	service, err := daemon.New(p.PluginDaemonName, p.PluginDaemonDesc, v2ray)
 	if err != nil {
 		return fmt.Errorf("failed to create adapter daemon: %v", err)
 	}
@@ -450,9 +454,10 @@ func configureWinFirewall(p *ProxyInstallation) error {
 	if err := readJSON(p.pluginAgentConfigPath(), config); err != nil {
 		return fmt.Errorf("could not read agent plugin config: %v", err)
 	}
+	v2ray := strings.Replace(p.V2RayDaemonName, " ", "_", -1)
 	for _, proto := range []string{"tcp", "udp"} {
 		err := winutils.RunPowershellScript(p.winFirewallScript(), "-Create",
-			"-ServiceName", p.V2RayDaemonName, "-ProgramPath", p.v2rayExecPath(),
+			"-ServiceName", v2ray, "-ProgramPath", p.v2rayExecPath(),
 			"-Port", fmt.Sprint(config.V2Ray.InboundPort), "-Protocol", proto)
 		if err != nil {
 			return err
@@ -463,8 +468,9 @@ func configureWinFirewall(p *ProxyInstallation) error {
 }
 
 func rollbackWinFirewallConfiguration(p *ProxyInstallation) error {
+	v2ray := strings.Replace(p.V2RayDaemonName, " ", "_", -1)
 	return winutils.RunPowershellScript(p.winFirewallScript(), "-Remove",
-		"-ServiceName", p.V2RayDaemonName)
+		"-ServiceName", v2ray)
 }
 
 func configureLinuxFirewall(p *ProxyInstallation) error {

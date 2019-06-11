@@ -150,7 +150,7 @@ func createV2RayDaemon(p *ProxyInstallation) error {
 		return fmt.Errorf("failed to install %s daemon: %v", p.V2RayDaemonName, err)
 	}
 
-	return nil
+	return setServiceRestartRule(p.V2RayDaemonName)
 }
 
 func removeV2RayDaemon(p *ProxyInstallation) error {
@@ -178,7 +178,7 @@ func createPluginDaemon(p *ProxyInstallation) error {
 		return fmt.Errorf("failed to install %s: %v", p.PluginDaemonName, err)
 	}
 
-	return nil
+	return setServiceRestartRule(p.PluginDaemonName)
 }
 
 func removePluginDaemon(p *ProxyInstallation) error {
@@ -549,5 +549,19 @@ func runPlugin(p *ProxyInstallation) error {
 	if err != nil {
 		return fmt.Errorf("failed to run plugin: %v", err)
 	}
+	return nil
+}
+
+func setServiceRestartRule(name string) error {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+	name = strings.Replace(name, " ", "_", -1)
+	cmd := exec.Command("sc", "failure", name, "reset=", "0",
+		"actions=", "restart/1000/restart/2000/restart/5000")
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to set service restart rule: %v", err)
+	}
+
 	return nil
 }

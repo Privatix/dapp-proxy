@@ -79,8 +79,8 @@ func Remove() flow.Flow {
 			newStep("stop v2ray daemon", stopV2rayDaemon, startV2rayDaemon),
 			newStep("stop using active proxy if any", removeOSProxyConfigurationIfAny, nil),
 			newStep("rollback operating system firewall configuration", rollbackOSFirewallConfiguration, configureOSFirewall),
-			newStep("remove v2ray daemon", removeV2RayDaemon, createV2RayDaemon),
 			newStep("remove plugin daemon", removePluginDaemon, createPluginDaemon),
+			newStep("remove v2ray daemon", removeV2RayDaemon, createV2RayDaemon),
 		},
 	}
 }

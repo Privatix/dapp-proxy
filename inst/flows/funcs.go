@@ -131,14 +131,6 @@ func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
 	return saveJSON(config, p.pluginClientConfigPathToUpdate())
 }
 
-func removeDaemons(p *ProxyInstallation) error {
-	err := removePluginDaemon(p)
-	if err == nil {
-		err = removeV2RayDaemon(p)
-	}
-	return err
-}
-
 func createV2RayDaemon(p *ProxyInstallation) error {
 	service, err := daemon.New(p.V2RayDaemonName, p.V2RayDaemonDesc)
 	if err != nil {

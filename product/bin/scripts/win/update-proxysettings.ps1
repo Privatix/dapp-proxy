@@ -45,9 +45,27 @@ $error.Clear()
 
 if ($Action -eq 'set') {
     # Get current proxy configuration
-    $ProxyEnable = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyEnable
-    $ProxyOverride = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyOverride
-    $ProxyServer = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyServer
+    try {
+        $ProxyEnable = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyEnable"
+    }
+    catch {
+        New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyEnable" -PropertyType "DWord" -Value 0  
+        $ProxyEnable = 0
+    }
+    try {
+        $ProxyOverride = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyOverride"
+    }
+    catch {
+        New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyOverride" -PropertyType "String" -Value ''  
+        $ProxyOverride=''
+        }
+    try{
+        $ProxyServer = Get-ItemPropertyValue -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyServer"
+    }
+    catch {
+        New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyServer" -PropertyType "String" -Value ''  
+        $ProxyServer=''
+        }
 
     try {
         # backup previous proxy configuration
@@ -60,20 +78,16 @@ if ($Action -eq 'set') {
         $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False    
         [System.IO.File]::WriteAllLines($ProxyOffSettingsPath, $ProxyOffSettingsJson, $Utf8NoBomEncoding)
         # Set new proxy configuration
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyEnable -Value 1
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyOverride -Value '<local>'
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyServer -Value "socks=127.0.0.1:$LocalSocksPort"
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyEnable" -Value 1
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyOverride" -Value '<local>'
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyServer" -Value "socks=127.0.0.1:$LocalSocksPort"
     }
     catch {
-        if ($ProxyEnable) {Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyEnable -Value $ProxyEnable}
-        if ($ProxyOverride) {Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyOverride -Value $ProxyOverride}
-        if ($ProxyServer) {Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name ProxyServer -Value $ProxyServer}
+        if ($ProxyEnable) {Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyEnable" -Value $ProxyEnable}
+        if ($ProxyOverride) {Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyOverride" -Value $ProxyOverride}
+        if ($ProxyServer) {Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -Name "ProxyServer" -Value $ProxyServer}
     }
-    finally {
-        if ($Error.Count -gt 0) {   
-            Write-Error $error[0].Exception
-        }
-    }
+
 }
 
 if ($Action -eq 'restore') {

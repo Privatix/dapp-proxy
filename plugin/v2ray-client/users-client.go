@@ -43,7 +43,7 @@ func (c *UsersClient) AddUser(ctx context.Context, id string) error {
 		}),
 	})
 	if err != nil {
-		return fmt.Errorf("could not add user: %v", err)
+		return fmt.Errorf("could not add user `%s`: %v", id, err)
 	}
 	return nil
 }
@@ -57,7 +57,7 @@ func (c *UsersClient) RemoveUser(ctx context.Context, id string) error {
 		}),
 	})
 	if err != nil {
-		return fmt.Errorf("could not remove user: %v", err)
+		return fmt.Errorf("could not remove user `%s`: %v", id, err)
 	}
 	return err
 }

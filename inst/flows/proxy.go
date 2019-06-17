@@ -135,6 +135,9 @@ func (p *ProxyInstallation) role() string {
 }
 
 func daemonName(ex, h string) string {
+	if runtime.GOOS == "windows" {
+		return fmt.Sprintf("Privatix %s %s", ex, h)
+	}
 	return fmt.Sprintf("io.privatix.%s_%s", ex, h)
 }
 

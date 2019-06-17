@@ -73,6 +73,7 @@ func saveJSON(v interface{}, dest string) error {
 }
 
 func preparePluginConfigs(p *ProxyInstallation) error {
+	// Agent config.
 	config := new(adapter.Config)
 	if err := readJSON(p.pluginAgentConfigTplPath(), config); err != nil {
 		return err
@@ -86,6 +87,8 @@ func preparePluginConfigs(p *ProxyInstallation) error {
 		return err
 	}
 
+	// Client config.
+	config = new(adapter.Config)
 	if err := readJSON(p.pluginClientConfTplPath(), config); err != nil {
 		return err
 	}
@@ -114,6 +117,7 @@ func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
 		return saveJSON(config, p.pluginAgentConfigPathToUpdate())
 	}
 
+	config = new(adapter.Config)
 	if err := readJSON(p.pluginClientConfTplPathToUpdate(), config); err != nil {
 		return err
 	}
@@ -127,14 +131,6 @@ func prepareUpdatePluginConfigs(p *ProxyInstallation) error {
 	return saveJSON(config, p.pluginClientConfigPathToUpdate())
 }
 
-func removeDaemons(p *ProxyInstallation) error {
-	err := removePluginDaemon(p)
-	if err == nil {
-		err = removeV2RayDaemon(p)
-	}
-	return err
-}
-
 func createV2RayDaemon(p *ProxyInstallation) error {
 	service, err := daemon.New(p.V2RayDaemonName, p.V2RayDaemonDesc)
 	if err != nil {
@@ -146,7 +142,7 @@ func createV2RayDaemon(p *ProxyInstallation) error {
 		return fmt.Errorf("failed to install %s daemon: %v", p.V2RayDaemonName, err)
 	}
 
-	return nil
+	return setServiceRestartRule(p.V2RayDaemonName)
 }
 
 func removeV2RayDaemon(p *ProxyInstallation) error {
@@ -164,7 +160,11 @@ func removeV2RayDaemon(p *ProxyInstallation) error {
 }
 
 func createPluginDaemon(p *ProxyInstallation) error {
-	service, err := daemon.New(p.PluginDaemonName, p.PluginDaemonDesc, p.V2RayDaemonName)
+	v2ray := p.V2RayDaemonName
+	if runtime.GOOS == "windows" {
+		v2ray = strings.Replace(p.V2RayDaemonName, " ", "_", -1)
+	}
+	service, err := daemon.New(p.PluginDaemonName, p.PluginDaemonDesc, v2ray)
 	if err != nil {
 		return fmt.Errorf("failed to create adapter daemon: %v", err)
 	}
@@ -174,7 +174,7 @@ func createPluginDaemon(p *ProxyInstallation) error {
 		return fmt.Errorf("failed to install %s: %v", p.PluginDaemonName, err)
 	}
 
-	return nil
+	return setServiceRestartRule(p.PluginDaemonName)
 }
 
 func removePluginDaemon(p *ProxyInstallation) error {
@@ -454,9 +454,10 @@ func configureWinFirewall(p *ProxyInstallation) error {
 	if err := readJSON(p.pluginAgentConfigPath(), config); err != nil {
 		return fmt.Errorf("could not read agent plugin config: %v", err)
 	}
+	v2ray := strings.Replace(p.V2RayDaemonName, " ", "_", -1)
 	for _, proto := range []string{"tcp", "udp"} {
 		err := winutils.RunPowershellScript(p.winFirewallScript(), "-Create",
-			"-ServiceName", p.V2RayDaemonName, "-ProgramPath", p.v2rayExecPath(),
+			"-ServiceName", v2ray, "-ProgramPath", p.v2rayExecPath(),
 			"-Port", fmt.Sprint(config.V2Ray.InboundPort), "-Protocol", proto)
 		if err != nil {
 			return err
@@ -467,8 +468,9 @@ func configureWinFirewall(p *ProxyInstallation) error {
 }
 
 func rollbackWinFirewallConfiguration(p *ProxyInstallation) error {
+	v2ray := strings.Replace(p.V2RayDaemonName, " ", "_", -1)
 	return winutils.RunPowershellScript(p.winFirewallScript(), "-Remove",
-		"-ServiceName", p.V2RayDaemonName)
+		"-ServiceName", v2ray)
 }
 
 func configureLinuxFirewall(p *ProxyInstallation) error {
@@ -545,5 +547,19 @@ func runPlugin(p *ProxyInstallation) error {
 	if err != nil {
 		return fmt.Errorf("failed to run plugin: %v", err)
 	}
+	return nil
+}
+
+func setServiceRestartRule(name string) error {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+	name = strings.Replace(name, " ", "_", -1)
+	cmd := exec.Command("sc", "failure", name, "reset=", "0",
+		"actions=", "restart/1000/restart/2000/restart/5000")
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to set service restart rule: %v", err)
+	}
+
 	return nil
 }
